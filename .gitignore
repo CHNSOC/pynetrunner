@@ -3,6 +3,7 @@
 
 # Ignore virtual environment
 venv/
+.venv/
 
 # Ignore log files
 *.log
