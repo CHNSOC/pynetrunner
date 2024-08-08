@@ -1,0 +1,531 @@
+ID:accelerated_beta_test
+Type:agenda
+Text/Effect:When you score Accelerated Beta Test, you may look at the top 3 cards of R&D. If any of those cards are ice, you may install and rez them, ignoring all costs. Trash the rest of the cards you looked at.
+
+ID:access_to_globalsec
+Type:resource
+Text/Effect:+1[link]
+
+ID:account_siphon
+Type:event
+Text/Effect:Run HQ. If successful, instead of breaching HQ, you may force the Corp to lose up to 5[credit], then you gain 2[credit] for each credit lost and take 2 tags.
+
+ID:adonis_campaign
+Type:asset
+Text/Effect:Put 12[credit] from the bank on Adonis Campaign when rezzed. When there are no credits left on Adonis Campaign, trash it.
+Take 3[credit] from Adonis Campaign when your turn begins.
+
+ID:aesops_pawnshop
+Type:resource
+Text/Effect:When your turn begins, you may trash 1 of your other installed cards. If you do, gain 3[credit].
+
+ID:aggressive_negotiation
+Type:operation
+Text/Effect:Play only if you scored an agenda this turn.
+Search R&D for 1 card and add it to HQ. Shuffle R&D.
+
+ID:aggressive_secretary
+Type:asset
+Text/Effect:Aggressive Secretary can be advanced.
+If you pay 2[credit] when the Runner accesses Aggressive Secretary, trash 1 program for each advancement token on Aggressive Secretary.
+
+ID:akamatsu_mem_chip
+Type:hardware
+Text/Effect:+1[mu]
+
+ID:akitaro_watanabe
+Type:upgrade
+Text/Effect:The rez cost of ice protecting this server is lowered by 2.
+
+ID:anonymous_tip
+Type:operation
+Text/Effect:Draw 3 cards.
+
+ID:archer
+Type:ice
+Text/Effect:As an additional cost to rez this ice, forfeit 1 agenda.
+[subroutine] Gain 2[credit].
+[subroutine] Trash 1 installed program.
+[subroutine] Trash 1 installed program.
+[subroutine] End the run.
+
+ID:archived_memories
+Type:operation
+Text/Effect:Add 1 card from Archives to HQ.
+
+ID:armitage_codebusting
+Type:resource
+Text/Effect:Place 12[credit] from the bank on Armitage Codebusting when it is installed. When there are no credits left on Armitage Codebusting, trash it.
+[click]: Take 2[credit] from Armitage Codebusting.
+
+ID:astroscript_pilot_program
+Type:agenda
+Text/Effect:When you score this agenda, place 1 agenda counter on it.
+<strong>Hosted agenda counter:</strong> Place 1 advancement counter on an installed card you can advance.
+Limit 1 per deck.
+
+ID:aurora
+Type:program
+Text/Effect:Interface → <strong>2[credit]:</strong> Break 1 <strong>barrier</strong> subroutine.
+<strong>2[credit]:</strong> +3 strength.
+
+ID:bank_job
+Type:resource
+Text/Effect:When you install this resource, load 8[credit] on it. When it is empty, trash it.
+Whenever you make a successful run on a remote server, instead of breaching that server, you may take any number of credits from this resource.
+
+ID:battering_ram
+Type:program
+Text/Effect:Interface → <strong>2[credit]:</strong> Break up to 2 <strong>barrier</strong> subroutines.
+<strong>1[credit]:</strong> +1 strength for the remainder of this run.
+
+ID:beanstalk_royalties
+Type:operation
+Text/Effect:Gain 3[credit].
+
+ID:biotic_labor
+Type:operation
+Text/Effect:Gain [click][click].
+
+ID:breaking_news
+Type:agenda
+Text/Effect:When you score Breaking News, give the Runner 2 tags.
+When the turn on which you scored Breaking News ends, the Runner loses 2 tags.
+
+ID:cell_portal
+Type:ice
+Text/Effect:[subroutine] The Runner moves to the outermost position of the attacked server. They may jack out. Derez this ice.
+
+ID:chum
+Type:ice
+Text/Effect:[subroutine] The next piece of ice the Runner encounters during this run gets +2 strength. When that encounter ends, if the Runner did not fully break that ice, do 3 net damage.
+
+ID:closed_accounts
+Type:operation
+Text/Effect:Play only if the Runner is tagged.
+The Runner loses all credits in their credit pool.
+
+ID:corporate_troubleshooter
+Type:upgrade
+Text/Effect:<strong>X</strong>[credit], [trash]<strong>:</strong> Choose 1 rezzed piece of ice protecting this server. That ice gets +X strength for the remainder of the turn.
+
+ID:corroder
+Type:program
+Text/Effect:Interface → <strong>1[credit]:</strong> Break 1 <strong>barrier</strong> subroutine.
+<strong>1[credit]:</strong> +1 strength.
+
+ID:crash_space
+Type:resource
+Text/Effect:2[recurring-credit]
+Use these credits to pay for removing tags.
+[trash]: Prevent up to 3 meat damage.
+
+ID:crypsis
+Type:program
+Text/Effect:Interface → <strong>1[credit]:</strong> Break 1 subroutine.
+<strong>1[credit]:</strong> +1 strength.
+<strong>[click]:</strong> Place 1 virus counter on this program.
+Whenever an encounter ends, if you used this program to break a subroutine during that encounter, remove 1 hosted virus counter or trash this program.
+
+ID:cyberfeeder
+Type:hardware
+Text/Effect:1[recurring-credit]
+Use this credit to pay for using <strong>icebreakers</strong> or for installing <strong>virus</strong> programs.
+
+ID:data_dealer
+Type:resource
+Text/Effect:<strong>[click]</strong>, <strong>forfeit 1 agenda:</strong> Gain 9[credit].
+
+ID:data_mine
+Type:ice
+Text/Effect:[subroutine] Do 1 net damage. Trash Data Mine.
+
+ID:data_raven
+Type:ice
+Text/Effect:When the Runner encounters this ice, they must take 1 tag or end the run.
+<strong>Hosted power counter:</strong> Give the Runner 1 tag.
+[subroutine] Trace[3]. If successful, place 1 power counter on this ice.
+
+ID:datasucker
+Type:program
+Text/Effect:Whenever you make a successful run on a central server, place 1 virus counter on Datasucker.
+<strong>Hosted virus counter:</strong> Rezzed piece of ice currently being encountered has -1 strength until the end of the encounter.
+
+ID:decoy
+Type:resource
+Text/Effect:[trash]: Avoid receiving 1 tag.
+
+ID:deja_vu
+Type:event
+Text/Effect:Add 1 card (or up to 2 <strong>virus</strong> cards) from your heap to your grip.
+
+ID:demolition_run
+Type:event
+Text/Effect:Run HQ or R&D.
+Access → <strong>0[credit]:</strong> Trash the card you are accessing.
+
+ID:desperado
+Type:hardware
+Text/Effect:+1[mu]
+Gain 1[credit] whenever you make a successful run.
+Limit 1 <strong>console</strong> per player.
+
+ID:diesel
+Type:event
+Text/Effect:Draw 3 cards.
+
+ID:djinn
+Type:program
+Text/Effect:Djinn can host up to 3[mu] of non-<strong>icebreaker</strong> programs.
+The memory costs of hosted programs do not count against your memory limit.
+[click], 1[credit]: Search your stack for a <strong>virus</strong> program, reveal it, and add it to your grip. Shuffle your stack.
+
+ID:easy_mark
+Type:event
+Text/Effect:Gain 3[credit].
+
+ID:enigma
+Type:ice
+Text/Effect:[subroutine] The Runner loses [click].
+[subroutine] End the run.
+
+ID:experiential_data
+Type:upgrade
+Text/Effect:All ice protecting this server has +1 strength.
+
+ID:femme_fatale
+Type:program
+Text/Effect:Interface → <strong>1[credit]:</strong> Break 1 <strong>sentry</strong> subroutine.
+<strong>2[credit]:</strong> +1 strength.
+When you install this program, choose 1 installed piece of ice.
+Whenever you encounter the chosen ice, you may pay 1[credit] for each subroutine it has. If you do, bypass that ice.
+
+ID:forged_activation_orders
+Type:event
+Text/Effect:Choose 1 unrezzed piece of ice. The Corp may rez that ice. If they do not, they trash it.
+
+ID:gabriel_santiago_consummate_professional
+Type:runner_identity
+Text/Effect:The first time you make a successful run on HQ each turn, gain 2[credit].
+
+ID:ghost_branch
+Type:asset
+Text/Effect:Ghost Branch can be advanced.
+When the Runner accesses Ghost Branch, you may give the Runner 1 tag for each advancement token on Ghost Branch.
+
+ID:gordian_blade
+Type:program
+Text/Effect:Interface → <strong>1[credit]:</strong> Break 1 <strong>code gate</strong> subroutine.
+<strong>1[credit]:</strong> +1 strength for the remainder of this run.
+
+ID:grimoire
+Type:hardware
+Text/Effect:+2[mu]
+Whenever you install a <strong>virus</strong> program, place 1 virus counter on that program.
+Limit 1 <strong>console</strong> per player.
+
+ID:haas_bioroid_engineering_the_future
+Type:corp_identity
+Text/Effect:The first time you install a card each turn, gain 1[credit].
+
+ID:hadrians_wall
+Type:ice
+Text/Effect:Hadrian's Wall can be advanced and has +1 strength for each advancement token on it.
+[subroutine] End the run.
+[subroutine] End the run.
+
+ID:hedge_fund
+Type:operation
+Text/Effect:Gain 9[credit].
+
+ID:heimdall_1_0
+Type:ice
+Text/Effect:<strong>Lose [click]:</strong> Break 1 subroutine on this ice. Only the Runner can use this ability.
+[subroutine] Do 1 core damage.
+[subroutine] End the run.
+[subroutine] End the run.
+
+ID:hostile_takeover
+Type:agenda
+Text/Effect:When you score this agenda, gain 7[credit] and take 1 bad publicity.
+
+ID:hunter
+Type:ice
+Text/Effect:[subroutine] Trace[3]. If successful, give the Runner 1 tag.
+
+ID:ice_carver
+Type:resource
+Text/Effect:While you are encountering a piece of ice, it gets −1 strength.
+
+ID:ice_wall
+Type:ice
+Text/Effect:You can advance this ice. It gets +1 strength for each hosted advancement counter.
+[subroutine] End the run.
+
+ID:ichi_1_0
+Type:ice
+Text/Effect:<strong>Lose [click]:</strong> Break 1 subroutine on this ice. Only the Runner can use this ability.
+[subroutine] Trash 1 installed program.
+[subroutine] Trash 1 installed program.
+[subroutine] Trace[1]. If successful, do 1 core damage and give the Runner 1 tag.
+
+ID:infiltration
+Type:event
+Text/Effect:Gain 2[credit] or expose 1 card.
+
+ID:inside_job
+Type:event
+Text/Effect:Run any server. The first time you encounter a piece of ice during that run, bypass it.
+
+ID:jinteki_personal_evolution
+Type:corp_identity
+Text/Effect:Whenever an agenda is scored or stolen, do 1 net damage.
+
+ID:kate_mac_mccaffrey_digital_tinker
+Type:runner_identity
+Text/Effect:Lower the install cost of the first program or piece of hardware you install each turn by 1.
+
+ID:lemuria_codecracker
+Type:hardware
+Text/Effect:[click], 1[credit]: Expose 1 card. Use this ability only if you have made a successful run on HQ this turn.
+
+ID:magnum_opus
+Type:program
+Text/Effect:[click]: Gain 2[credit].
+
+ID:matrix_analyzer
+Type:ice
+Text/Effect:When the Runner encounters Matrix Analyzer, you may pay 1[credit] to place 1 advancement token on a card that can be advanced.
+[subroutine] Trace[2]. If successful, give the Runner 1 tag.
+
+ID:medium
+Type:program
+Text/Effect:Whenever you make a successful run on R&D, place 1 virus counter on this program.
+Whenever you breach R&D, choose a number less than the number of hosted virus counters. Access that many additional cards.
+
+ID:melange_mining_corp
+Type:asset
+Text/Effect:[click], [click], [click]: Gain 7[credit].
+
+ID:mimic
+Type:program
+Text/Effect:Interface → <strong>1[credit]:</strong> Break 1 <strong>sentry</strong> subroutine.
+
+ID:modded
+Type:event
+Text/Effect:Install a program or piece of hardware, lowering the install cost by 3.
+
+ID:nbn_making_news
+Type:corp_identity
+Text/Effect:2[recurring-credit]
+Use these credits during trace attempts.
+
+ID:net_shield
+Type:program
+Text/Effect:[interrupt] → The first time each turn you would suffer net damage, you may pay 1[credit] to prevent 1 net damage.
+
+ID:neural_emp
+Type:operation
+Text/Effect:Play only if the Runner made a run during their last turn.
+Do 1 net damage.
+
+ID:neural_katana
+Type:ice
+Text/Effect:[subroutine] Do 3 net damage.
+
+ID:ninja
+Type:program
+Text/Effect:Interface → <strong>1[credit]:</strong> Break 1 <strong>sentry</strong> subroutine.
+<strong>3[credit]:</strong> +5 strength.
+
+ID:nisei_mk_ii
+Type:agenda
+Text/Effect:When you score this agenda, place 1 agenda counter on it.
+<strong>Hosted agenda counter:</strong> End the run.
+
+ID:noise_hacker_extraordinaire
+Type:runner_identity
+Text/Effect:Whenever you install a <strong>virus</strong> program, the Corp trashes the top card of R&D.
+
+ID:pad_campaign
+Type:asset
+Text/Effect:When your turn begins, gain 1[credit].
+
+ID:parasite
+Type:program
+Text/Effect:Install only on a rezzed piece of ice.
+When your turn begins, place 1 virus counter on this program.
+Host ice gets -1 strength for each hosted virus counter.
+When the strength of host ice is 0 or less, trash it.
+
+ID:pipeline
+Type:program
+Text/Effect:Interface → <strong>1[credit]:</strong> Break 1 <strong>sentry</strong> subroutine.
+<strong>2[credit]:</strong> +1 strength for the remainder of this run.
+
+ID:posted_bounty
+Type:agenda
+Text/Effect:When you score Posted Bounty, you may forfeit it to give the Runner 1 tag and take 1 bad publicity.
+
+ID:precognition
+Type:operation
+Text/Effect:Look at the top 5 cards of R&D and arrange them in any order.
+
+ID:priority_requisition
+Type:agenda
+Text/Effect:When you score Priority Requisition, you may rez a piece of ice ignoring all costs.
+
+ID:private_security_force
+Type:agenda
+Text/Effect:If the Runner is tagged, Private Security Force gains: "[click]: Do 1 meat damage."
+
+ID:project_junebug
+Type:asset
+Text/Effect:Project Junebug can be advanced.
+If you pay 1[credit] when the Runner accesses Project Junebug, do 2 net damage for each advancement token on Project Junebug.
+
+ID:psychographics
+Type:operation
+Text/Effect:X must be equal to or less than the number of tags the Runner has.
+Place X advancement counters on 1 installed card you can advance.
+
+ID:rabbit_hole
+Type:hardware
+Text/Effect:+1[link]
+When Rabbit Hole is installed, you may search your stack for another copy of Rabbit Hole and install it by paying its install cost. Shuffle your stack.
+
+ID:red_herrings
+Type:upgrade
+Text/Effect:Persistent → As an additional cost to steal an agenda from this server or its root, the Runner must pay 5[credit]. <em>(If the Runner trashes this card while accessing it, this ability still applies for the remainder of this run.)</em>
+
+ID:research_station
+Type:upgrade
+Text/Effect:Install only in the root of HQ.
+Your maximum hand size is +2.
+
+ID:rototurret
+Type:ice
+Text/Effect:[subroutine] Trash 1 installed program.
+[subroutine] End the run.
+
+ID:sacrificial_construct
+Type:resource
+Text/Effect:[trash]: Prevent an installed program or an installed piece of hardware from being trashed.
+
+ID:sansan_city_grid
+Type:upgrade
+Text/Effect:Each agenda in the root of this server gets −1 advancement requirement.
+Limit 1 <strong>region</strong> per server.
+
+ID:scorched_earth
+Type:operation
+Text/Effect:Play only if the Runner is tagged.
+Do 4 meat damage.
+
+ID:sea_source
+Type:operation
+Text/Effect:Play only if the Runner made a successful run during their last turn.
+Trace[3]. If successful, give the Runner 1 tag.
+
+ID:security_subcontract
+Type:asset
+Text/Effect:[click], <strong>trash a rezzed piece of ice:</strong> Gain 4[credit].
+
+ID:shadow
+Type:ice
+Text/Effect:Shadow can be advanced and has +1 strength for each advancement token on it.
+[subroutine] The Corp gains 2[credit].
+[subroutine] Trace[3]. If successful, give the Runner 1 tag.
+
+ID:shipment_from_kaguya
+Type:operation
+Text/Effect:Place 1 advancement token on each of up to 2 different installed cards that can be advanced.
+
+ID:shipment_from_mirrormorph
+Type:operation
+Text/Effect:Install up to 3 cards from HQ (one at a time and paying all install costs).
+
+ID:snare
+Type:asset
+Text/Effect:While the Runner is accessing this asset in R&D, they must reveal it.
+When the Runner accesses this asset anywhere except in Archives, you may pay 4[credit]. If you do, give the Runner 1 tag and do 3 net damage.
+
+ID:sneakdoor_beta
+Type:program
+Text/Effect:[click]<strong>:</strong> Run Archives. If that run would be declared successful, change the attacked server to HQ for the remainder of that run.
+
+ID:special_order
+Type:event
+Text/Effect:Search your stack for an <strong>icebreaker</strong>, reveal it, and add it to your grip. Shuffle your stack.
+
+ID:stimhack
+Type:event
+Text/Effect:Place 9[credit] on this event, then run any server. During that run, hosted credits are considered to be in your credit pool. When that run ends, suffer 1 core damage. This damage cannot be prevented.
+
+ID:sure_gamble
+Type:event
+Text/Effect:Gain 9[credit].
+
+ID:the_makers_eye
+Type:event
+Text/Effect:Run R&D. If successful, access 2 additional cards when you breach R&D.
+
+ID:the_personal_touch
+Type:hardware
+Text/Effect:Install The Personal Touch only on an <strong>icebreaker.</strong>
+Host <strong>icebreaker</strong> has +1 strength.
+
+ID:the_toolbox
+Type:hardware
+Text/Effect:+2[mu] +2[link]
+2[recurring-credit]
+Use these credits to pay for using <strong>icebreakers</strong>.
+Limit 1 <strong>console</strong> per player.
+
+ID:tinkering
+Type:event
+Text/Effect:Choose a piece of ice. That ice gains <strong>sentry</strong>, <strong>code gate</strong>, and <strong>barrier</strong> until the end of the turn.
+
+ID:tollbooth
+Type:ice
+Text/Effect:When the Runner encounters this ice, they must pay 3[credit], if able. If they do not, end the run.
+[subroutine] End the run.
+
+ID:viktor_1_0
+Type:ice
+Text/Effect:<strong>Lose [click]:</strong> Break 1 subroutine on this ice. Only the Runner can use this ability.
+[subroutine] Do 1 core damage.
+[subroutine] End the run.
+
+ID:wall_of_static
+Type:ice
+Text/Effect:[subroutine] End the run.
+
+ID:wall_of_thorns
+Type:ice
+Text/Effect:[subroutine] Do 2 net damage.
+[subroutine] End the run.
+
+ID:weyland_consortium_building_a_better_world
+Type:corp_identity
+Text/Effect:Whenever you play a <strong>transaction</strong> operation, gain 1[credit].
+
+ID:wyldside
+Type:resource
+Text/Effect:When your turn begins, draw 2 cards and lose [click].
+
+ID:wyrm
+Type:program
+Text/Effect:Interface → <strong>3[credit]:</strong> Break 1 subroutine on a piece of ice with 0 or less strength.
+Interface → <strong>1[credit]:</strong> The ice you are encountering gets -1 strength for the remainder of this encounter.
+<strong>1[credit]:</strong> +1 strength.
+
+ID:yog_0
+Type:program
+Text/Effect:Interface → <strong>0[credit]:</strong> Break 1 <strong>code gate</strong> subroutine.
+
+ID:zaibatsu_loyalty
+Type:asset
+Text/Effect:[interrupt] → When a card would be exposed, you may rez this asset.
+[interrupt] → <strong>1[credit]</strong> or <strong>[trash]:</strong> Prevent 1 card from being exposed.
+
