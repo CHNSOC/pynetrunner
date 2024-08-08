@@ -1,0 +1,26 @@
+{
+    "name": "Kate's Shaper Deck",
+    "identity": "kate_mac_mccaffrey_digital_tinker",
+    "cards": [
+      {"id": "diesel", "quantity": 3},
+      {"id": "easy_mark", "quantity": 3},
+      {"id": "infiltration", "quantity": 3},
+      {"id": "modded", "quantity": 2},
+      {"id": "sure_gamble", "quantity": 3},
+      {"id": "the_makers_eye", "quantity": 3},
+      {"id": "tinkering", "quantity": 2},
+      {"id": "akamatsu_mem_chip", "quantity": 2},
+      {"id": "cyberfeeder", "quantity": 3},
+      {"id": "rabbit_hole", "quantity": 2},
+      {"id": "the_personal_touch", "quantity": 2},
+      {"id": "the_toolbox", "quantity": 1},
+      {"id": "armitage_codebusting", "quantity": 3},
+      {"id": "sacrificial_construct", "quantity": 2},
+      {"id": "corroder", "quantity": 2},
+      {"id": "crypsis", "quantity": 2},
+      {"id": "femme_fatale", "quantity": 1},
+      {"id": "gordian_blade", "quantity": 2},
+      {"id": "ninja", "quantity": 2},
+      {"id": "magnum_opus", "quantity": 2}
+    ]
+  }

@@ -1,0 +1,25 @@
+{
+    "name": "Weyland Buildtech: Building a Better World",
+    "identity": "weyland_consortium_building_a_better_world",
+    "cards": [
+      {"id": "hostile_takeover", "quantity": 3},
+      {"id": "posted_bounty", "quantity": 2},
+      {"id": "priority_requisition", "quantity": 3},
+      {"id": "private_security_force", "quantity": 3},
+      {"id": "adonis_campaign", "quantity": 3},
+      {"id": "melange_mining_corp", "quantity": 2},
+      {"id": "pad_campaign", "quantity": 3},
+      {"id": "anonymous_tip", "quantity": 1},
+      {"id": "beanstalk_royalties", "quantity": 3},
+      {"id": "hedge_fund", "quantity": 3},
+      {"id": "shipment_from_kaguya", "quantity": 2},
+      {"id": "hadrians_wall", "quantity": 2},
+      {"id": "ice_wall", "quantity": 3},
+      {"id": "wall_of_static", "quantity": 3},
+      {"id": "enigma", "quantity": 3},
+      {"id": "tollbooth", "quantity": 3},
+      {"id": "archer", "quantity": 2},
+      {"id": "rototurret", "quantity": 2},
+      {"id": "shadow", "quantity": 3}
+    ]
+  }
