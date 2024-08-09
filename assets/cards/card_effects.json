@@ -1,0 +1,54 @@
+[
+  {
+    "id": "adonis_campaign",
+    "type": "asset",
+    "on_rez": {
+      "action": "place_credits",
+      "amount": 12
+    },
+    "on_turn_begin": {
+      "action": "gain_credits",
+      "amount": 3
+    },
+    "on_token_empty": {
+      "action": "trash_self"
+    }
+  },
+  {
+    "id": "hedge_fund",
+    "type": "operation",
+    "on_play": {
+      "action": "gain_credits",
+      "amount": 9
+    }
+  },
+  {
+    "id": "corroder",
+    "type": "program",
+    "subtype": "icebreaker",
+    "persistent_ability": {
+      "cost": 1,
+      "action": "break_subroutine",
+      "target": "barrier"
+    },
+    "paid_ability": {
+      "cost": 1,
+      "action": "increase_strength",
+      "amount": 1
+    }
+  },
+  {
+    "id": "enigma",
+    "type": "ice",
+    "subtype": "code_gate",
+    "subroutines": [
+      {
+        "action": "lose_click",
+        "target": "runner"
+      },
+      {
+        "action": "end_run"
+      }
+    ]
+  }
+]
