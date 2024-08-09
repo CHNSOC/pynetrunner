@@ -19,20 +19,21 @@ def load_deck_from_json(file_path: str, card_registry: CardRegistry) -> Deck:
         if card:
             cards.extend([card] * card_entry['quantity'])
         else:
-            print(f"Warning: Card with ID {
-                  card_entry['id']} not found in registry")
+            print(
+                f"Warning: Card with ID {card_entry['id']} not found in registry")
 
     return Deck(cards), identity
 
 
 def setup_game():
     card_registry = CardRegistry()
-    card_registry.load_cards_from_json('assets/cards/core_set.json', 'assets/cards/card_effects.json')
+    card_registry.load_cards_from_json(
+        'assets/cards/core_set.json', 'assets/cards/card_effects.json')
 
     # Set up Corp
     corp_deck, corp_identity = load_deck_from_json(
         'assets/decks/corp/weyland_starter.json', card_registry)
-    
+
     corp = Corp(corp_deck, card_registry.get_card(corp_identity))
 
     # Set up Runner

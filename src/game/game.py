@@ -124,8 +124,8 @@ class Corp(Player):
             self.clicks -= 1
 
     def display_options(self, game):
-        print(f"\nCorp's turn (Clicks: {
-              self.clicks}, Credits: {self.credits}):")
+        print(
+            f"\nCorp's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
         print("d: Draw a card")
         print("c: Gain 1 credit")
         print("p: Purge virus counters")
@@ -226,8 +226,8 @@ class Runner(Player):
             self.clicks -= 1
 
     def display_options(self, game):
-        print(f"\nRunner's turn (Clicks: {
-              self.clicks}, Credits: {self.credits}):")
+        print(
+            f"\nRunner's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
         print("d: Draw a card")
         print("c: Gain 1 credit")
         print("r: Initiate a run")
@@ -277,8 +277,7 @@ class Runner(Player):
             return False
 
     def score_agenda(self, agenda):
-        print(f"{self.name} scores {agenda.name} for {
-              agenda.agenda_points} points!")
+        print(f"{self.name} scores {agenda.name} for {agenda.agenda_points} points!")
         return agenda.agenda_points
 
 
@@ -466,16 +465,16 @@ class Game:
 
     def is_game_over(self):
         if self.calculate_score(self.corp.score_area) >= 7:
-            print(f"Game Over: {
-                  self.corp.name} wins by scoring 7 agenda points!")
+            print(
+                f"Game Over: {self.corp.name} wins by scoring 7 agenda points!")
             return True
         elif self.calculate_score(self.runner.score_area) >= 7:
-            print(f"Game Over: {
-                  self.runner.name} wins by stealing 7 agenda points!")
+            print(
+                f"Game Over: {self.runner.name} wins by stealing 7 agenda points!")
             return True
         elif len(self.corp.deck) == 0:
-            print(f"Game Over: {
-                  self.runner.name} wins! The Corp has no more cards to draw.")
+            print(
+                f"Game Over: {self.runner.name} wins! The Corp has no more cards to draw.")
             return True
         return False
 
