@@ -1,4 +1,5 @@
 
+import random
 from typing import Dict, List, Optional
 from random import shuffle
 from typing import List, Optional
@@ -17,15 +18,21 @@ class Deck:
     def draw(self) -> Optional[Card]:
         return self.cards.pop() if self.cards else None
 
+    def add_card(self, card: Card):
+        self.cards.append(card)
+
 
 class Player:
-    def __init__(self, name: str, deck: Deck):
-        self.name = name
+    def __init__(self, deck: Deck, identity: Optional[Card] = None):
+        self.name = identity.name if identity else "Anonymous"
         self.deck = deck
+        self.identity: Optional[Card] = None
         self.hand: List[Card] = []
         self.credits = 5
         self.clicks = 0
-        self.scored_agendas = 0
+        self.has_mulliganed = False
+        self.score_area: List[Card] = []
+        self.installed_cards = []
 
     def __str__(self):
         return f"{self.name} - Credits: {self.credits}, Clicks: {self.clicks}, Hand size: {len(self.hand)}"
@@ -37,6 +44,22 @@ class Player:
             else:
                 # Handle deck out situation
                 pass
+
+    def mulligan(self):
+        if not self.has_mulliganed:
+            # Return all cards to the deck
+            self.deck.cards.extend(self.hand)
+            self.hand.clear()
+            # Shuffle the deck
+            random.shuffle(self.deck.cards)
+            # Draw a new hand
+            self.draw(5)
+            self.has_mulliganed = True
+        else:
+            print(f"{self.name} has already mulliganed in this game.")
+
+    def set_identity(self, identity_card):
+        self.identity = identity_card
 
     def gain_credits(self, amount: int):
         self.credits += amount

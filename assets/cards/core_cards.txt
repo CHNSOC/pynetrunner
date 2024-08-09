@@ -1,0 +1,1394 @@
+ID: adonis_campaign
+Name: Adonis Campaign
+Type: asset
+Text: Put 12[credit] from the bank on Adonis Campaign when rezzed. When there are no credits left on Adonis Campaign, trash it.
+Take 3[credit] from Adonis Campaign when your turn begins.
+Cost: 4
+Faction: haas_bioroid
+Side: corp
+Strength: None
+Stripped Text: Put 12 credits from the bank on Adonis Campaign when rezzed. When there are no credits left on Adonis Campaign, trash it. Take 3 credits from Adonis Campaign when your turn begins.
+Is Unique: False
+Subtypes: advertisement
+Influence Cost: 2
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: 3
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Advertisement
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: akamatsu_mem_chip
+Name: Akamatsu Mem Chip
+Type: hardware
+Text: +1[mu]
+Cost: 1
+Faction: shaper
+Side: runner
+Strength: None
+Stripped Text: +1 mu
+Is Unique: False
+Subtypes: chip
+Influence Cost: 1
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Chip
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: 1
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: anonymous_tip
+Name: Anonymous Tip
+Type: operation
+Text: Draw 3 cards.
+Cost: 0
+Faction: nbn
+Side: corp
+Strength: None
+Stripped Text: Draw 3 cards.
+Is Unique: False
+Subtypes: 
+Influence Cost: 1
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: None
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: archer
+Name: Archer
+Type: ice
+Text: As an additional cost to rez this ice, forfeit 1 agenda.
+[subroutine] Gain 2[credit].
+[subroutine] Trash 1 installed program.
+[subroutine] Trash 1 installed program.
+[subroutine] End the run.
+Cost: 4
+Faction: weyland_consortium
+Side: corp
+Strength: 6
+Stripped Text: As an additional cost to rez this ice, forfeit 1 agenda. Subroutine Gain 2 credits. Subroutine Trash 1 installed program. Subroutine Trash 1 installed program. Subroutine End the run.
+Is Unique: False
+Subtypes: sentry, destroyer
+Influence Cost: 2
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Sentry - Destroyer
+  Additional Cost: True
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: 4
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: armitage_codebusting
+Name: Armitage Codebusting
+Type: resource
+Text: Place 12[credit] from the bank on Armitage Codebusting when it is installed. When there are no credits left on Armitage Codebusting, trash it.
+[click]: Take 2[credit] from Armitage Codebusting.
+Cost: 1
+Faction: neutral_runner
+Side: runner
+Strength: None
+Stripped Text: Place 12 credits from the bank on Armitage Codebusting when it is installed. When there are no credits left on Armitage Codebusting, trash it. click: Take 2 credits from Armitage Codebusting.
+Is Unique: False
+Subtypes: job
+Influence Cost: 0
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Job
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: beanstalk_royalties
+Name: Beanstalk Royalties
+Type: operation
+Text: Gain 3[credit].
+Cost: 0
+Faction: weyland_consortium
+Side: corp
+Strength: None
+Stripped Text: Gain 3 credits.
+Is Unique: False
+Subtypes: transaction
+Influence Cost: 1
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Transaction
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: corroder
+Name: Corroder
+Type: program
+Text: Interface → <strong>1[credit]:</strong> Break 1 <strong>barrier</strong> subroutine.
+<strong>1[credit]:</strong> +1 strength.
+Cost: 2
+Faction: anarch
+Side: runner
+Strength: 2
+Stripped Text: Interface -> 1 credit: Break 1 barrier subroutine. 1 credit: +1 strength.
+Is Unique: False
+Subtypes: fracter, icebreaker
+Influence Cost: 2
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: 1
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Icebreaker - Fracter
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: crypsis
+Name: Crypsis
+Type: program
+Text: Interface → <strong>1[credit]:</strong> Break 1 subroutine.
+<strong>1[credit]:</strong> +1 strength.
+<strong>[click]:</strong> Place 1 virus counter on this program.
+Whenever an encounter ends, if you used this program to break a subroutine during that encounter, remove 1 hosted virus counter or trash this program.
+Cost: 5
+Faction: neutral_runner
+Side: runner
+Strength: 0
+Stripped Text: Interface -> 1 credit: Break 1 subroutine. 1 credit: +1 strength. click: Place 1 virus counter on this program. Whenever an encounter ends, if you used this program to break a subroutine during that encounter, remove 1 hosted virus counter or trash this program.
+Is Unique: False
+Subtypes: ai, icebreaker, virus
+Influence Cost: 0
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: 1
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Icebreaker - AI - Virus
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: cyberfeeder
+Name: Cyberfeeder
+Type: hardware
+Text: 1[recurring-credit]
+Use this credit to pay for using <strong>icebreakers</strong> or for installing <strong>virus</strong> programs.
+Cost: 2
+Faction: anarch
+Side: runner
+Strength: None
+Stripped Text: 1 recurring credit Use this credit to pay for using icebreakers or for installing virus programs.
+Is Unique: False
+Subtypes: chip
+Influence Cost: 1
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Chip
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: 1
+  Rez Effect: False
+  Trash Ability: False
+
+ID: diesel
+Name: Diesel
+Type: event
+Text: Draw 3 cards.
+Cost: 0
+Faction: shaper
+Side: runner
+Strength: None
+Stripped Text: Draw 3 cards.
+Is Unique: False
+Subtypes: 
+Influence Cost: 2
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: None
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: easy_mark
+Name: Easy Mark
+Type: event
+Text: Gain 3[credit].
+Cost: 0
+Faction: criminal
+Side: runner
+Strength: None
+Stripped Text: Gain 3 credits.
+Is Unique: False
+Subtypes: job
+Influence Cost: 1
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Job
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: enigma
+Name: Enigma
+Type: ice
+Text: [subroutine] The Runner loses [click].
+[subroutine] End the run.
+Cost: 3
+Faction: neutral_corp
+Side: corp
+Strength: 2
+Stripped Text: Subroutine The Runner loses click. Subroutine End the run.
+Is Unique: False
+Subtypes: code_gate
+Influence Cost: 0
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Code Gate
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: 2
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: femme_fatale
+Name: Femme Fatale
+Type: program
+Text: Interface → <strong>1[credit]:</strong> Break 1 <strong>sentry</strong> subroutine.
+<strong>2[credit]:</strong> +1 strength.
+When you install this program, choose 1 installed piece of ice.
+Whenever you encounter the chosen ice, you may pay 1[credit] for each subroutine it has. If you do, bypass that ice.
+Cost: 9
+Faction: criminal
+Side: runner
+Strength: 2
+Stripped Text: Interface -> 1 credit: Break 1 sentry subroutine. 2 credits: +1 strength. When you install this program, choose 1 installed piece of ice. Whenever you encounter the chosen ice, you may pay 1 credit for each subroutine it has. If you do, bypass that ice.
+Is Unique: False
+Subtypes: icebreaker, killer
+Influence Cost: 1
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: 1
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Icebreaker - Killer
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: gordian_blade
+Name: Gordian Blade
+Type: program
+Text: Interface → <strong>1[credit]:</strong> Break 1 <strong>code gate</strong> subroutine.
+<strong>1[credit]:</strong> +1 strength for the remainder of this run.
+Cost: 4
+Faction: shaper
+Side: runner
+Strength: 2
+Stripped Text: Interface -> 1 credit: Break 1 code gate subroutine. 1 credit: +1 strength for the remainder of this run.
+Is Unique: False
+Subtypes: decoder, icebreaker
+Influence Cost: 3
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: 1
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Icebreaker - Decoder
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: hadrians_wall
+Name: Hadrian's Wall
+Type: ice
+Text: Hadrian's Wall can be advanced and has +1 strength for each advancement token on it.
+[subroutine] End the run.
+[subroutine] End the run.
+Cost: 10
+Faction: weyland_consortium
+Side: corp
+Strength: 7
+Stripped Text: Hadrian's Wall can be advanced and has +1 strength for each advancement token on it. Subroutine End the run. Subroutine End the run.
+Is Unique: False
+Subtypes: barrier
+Influence Cost: 3
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Barrier
+  Additional Cost: False
+  Advanceable: True
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: 2
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: hedge_fund
+Name: Hedge Fund
+Type: operation
+Text: Gain 9[credit].
+Cost: 5
+Faction: neutral_corp
+Side: corp
+Strength: None
+Stripped Text: Gain 9 credits.
+Is Unique: False
+Subtypes: transaction
+Influence Cost: 0
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Transaction
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: hostile_takeover
+Name: Hostile Takeover
+Type: agenda
+Text: When you score this agenda, gain 7[credit] and take 1 bad publicity.
+Cost: None
+Faction: weyland_consortium
+Side: corp
+Strength: None
+Stripped Text: When you score this agenda, gain 7 credits and take 1 bad publicity.
+Is Unique: False
+Subtypes: expansion
+Influence Cost: None
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: 2
+Agenda Points: 1
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Expansion
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: ice_wall
+Name: Ice Wall
+Type: ice
+Text: You can advance this ice. It gets +1 strength for each hosted advancement counter.
+[subroutine] End the run.
+Cost: 1
+Faction: weyland_consortium
+Side: corp
+Strength: 1
+Stripped Text: You can advance this ice. It gets +1 strength for each hosted advancement counter. Subroutine End the run.
+Is Unique: False
+Subtypes: barrier
+Influence Cost: 1
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Barrier
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: 1
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: infiltration
+Name: Infiltration
+Type: event
+Text: Gain 2[credit] or expose 1 card.
+Cost: 0
+Faction: neutral_runner
+Side: runner
+Strength: None
+Stripped Text: Gain 2 credits or expose 1 card.
+Is Unique: False
+Subtypes: 
+Influence Cost: 0
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: None
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: magnum_opus
+Name: Magnum Opus
+Type: program
+Text: [click]: Gain 2[credit].
+Cost: 5
+Faction: shaper
+Side: runner
+Strength: None
+Stripped Text: click: Gain 2 credits.
+Is Unique: False
+Subtypes: 
+Influence Cost: 2
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: 2
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: None
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: melange_mining_corp
+Name: Melange Mining Corp.
+Type: asset
+Text: [click], [click], [click]: Gain 7[credit].
+Cost: 1
+Faction: neutral_corp
+Side: corp
+Strength: None
+Stripped Text: click, click, click: Gain 7 credits.
+Is Unique: False
+Subtypes: 
+Influence Cost: 0
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: 1
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: None
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: modded
+Name: Modded
+Type: event
+Text: Install a program or piece of hardware, lowering the install cost by 3.
+Cost: 0
+Faction: shaper
+Side: runner
+Strength: None
+Stripped Text: Install a program or piece of hardware, lowering the install cost by 3.
+Is Unique: False
+Subtypes: mod
+Influence Cost: 2
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Mod
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: ninja
+Name: Ninja
+Type: program
+Text: Interface → <strong>1[credit]:</strong> Break 1 <strong>sentry</strong> subroutine.
+<strong>3[credit]:</strong> +5 strength.
+Cost: 4
+Faction: criminal
+Side: runner
+Strength: 0
+Stripped Text: Interface -> 1 credit: Break 1 sentry subroutine. 3 credits: +5 strength.
+Is Unique: False
+Subtypes: icebreaker, killer
+Influence Cost: 2
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: 1
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Icebreaker - Killer
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: pad_campaign
+Name: PAD Campaign
+Type: asset
+Text: When your turn begins, gain 1[credit].
+Cost: 2
+Faction: neutral_corp
+Side: corp
+Strength: None
+Stripped Text: When your turn begins, gain 1 credit.
+Is Unique: False
+Subtypes: advertisement
+Influence Cost: 0
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: 4
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Advertisement
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: posted_bounty
+Name: Posted Bounty
+Type: agenda
+Text: When you score Posted Bounty, you may forfeit it to give the Runner 1 tag and take 1 bad publicity.
+Cost: None
+Faction: weyland_consortium
+Side: corp
+Strength: None
+Stripped Text: When you score Posted Bounty, you may forfeit it to give the Runner 1 tag and take 1 bad publicity.
+Is Unique: False
+Subtypes: security
+Influence Cost: None
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: 3
+Agenda Points: 1
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Security
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: priority_requisition
+Name: Priority Requisition
+Type: agenda
+Text: When you score Priority Requisition, you may rez a piece of ice ignoring all costs.
+Cost: None
+Faction: neutral_corp
+Side: corp
+Strength: None
+Stripped Text: When you score Priority Requisition, you may rez a piece of ice ignoring all costs.
+Is Unique: False
+Subtypes: security
+Influence Cost: 0
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: 5
+Agenda Points: 3
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Security
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: private_security_force
+Name: Private Security Force
+Type: agenda
+Text: If the Runner is tagged, Private Security Force gains: "[click]: Do 1 meat damage."
+Cost: None
+Faction: neutral_corp
+Side: corp
+Strength: None
+Stripped Text: If the Runner is tagged, Private Security Force gains: "click: Do 1 meat damage."
+Is Unique: False
+Subtypes: security
+Influence Cost: 0
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: 4
+Agenda Points: 2
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Security
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: rabbit_hole
+Name: Rabbit Hole
+Type: hardware
+Text: +1[link]
+When Rabbit Hole is installed, you may search your stack for another copy of Rabbit Hole and install it by paying its install cost. Shuffle your stack.
+Cost: 2
+Faction: shaper
+Side: runner
+Strength: None
+Stripped Text: +1 link When Rabbit Hole is installed, you may search your stack for another copy of Rabbit Hole and install it by paying its install cost. Shuffle your stack.
+Is Unique: False
+Subtypes: link
+Influence Cost: 1
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Link
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: 1
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: rototurret
+Name: Rototurret
+Type: ice
+Text: [subroutine] Trash 1 installed program.
+[subroutine] End the run.
+Cost: 4
+Faction: haas_bioroid
+Side: corp
+Strength: 0
+Stripped Text: Subroutine Trash 1 installed program. Subroutine End the run.
+Is Unique: False
+Subtypes: sentry, destroyer
+Influence Cost: 1
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Sentry - Destroyer
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: 2
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: sacrificial_construct
+Name: Sacrificial Construct
+Type: resource
+Text: [trash]: Prevent an installed program or an installed piece of hardware from being trashed.
+Cost: 0
+Faction: shaper
+Side: runner
+Strength: None
+Stripped Text: trash: Prevent an installed program or an installed piece of hardware from being trashed.
+Is Unique: False
+Subtypes: remote
+Influence Cost: 1
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Remote
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: True
+
+ID: shadow
+Name: Shadow
+Type: ice
+Text: Shadow can be advanced and has +1 strength for each advancement token on it.
+[subroutine] The Corp gains 2[credit].
+[subroutine] Trace[3]. If successful, give the Runner 1 tag.
+Cost: 3
+Faction: weyland_consortium
+Side: corp
+Strength: 1
+Stripped Text: Shadow can be advanced and has +1 strength for each advancement token on it. Subroutine The Corp gains 2 credits. Subroutine Trace[3]. If successful, give the Runner 1 tag.
+Is Unique: False
+Subtypes: sentry, tracer
+Influence Cost: 1
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Sentry - Tracer
+  Additional Cost: False
+  Advanceable: True
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: 2
+  On Encounter Effect: False
+  Performs Trace: True
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: shipment_from_kaguya
+Name: Shipment from Kaguya
+Type: operation
+Text: Place 1 advancement token on each of up to 2 different installed cards that can be advanced.
+Cost: 0
+Faction: weyland_consortium
+Side: corp
+Strength: None
+Stripped Text: Place 1 advancement token on each of up to 2 different installed cards that can be advanced.
+Is Unique: False
+Subtypes: 
+Influence Cost: 1
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: None
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: sure_gamble
+Name: Sure Gamble
+Type: event
+Text: Gain 9[credit].
+Cost: 5
+Faction: neutral_runner
+Side: runner
+Strength: None
+Stripped Text: Gain 9 credits.
+Is Unique: False
+Subtypes: 
+Influence Cost: 0
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: None
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: the_makers_eye
+Name: The Maker’s Eye
+Type: event
+Text: Run R&D. If successful, access 2 additional cards when you breach R&D.
+Cost: 2
+Faction: shaper
+Side: runner
+Strength: None
+Stripped Text: Run R&D. If successful, access 2 additional cards when you breach R&D.
+Is Unique: False
+Subtypes: run
+Influence Cost: 2
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Run
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: the_personal_touch
+Name: The Personal Touch
+Type: hardware
+Text: Install The Personal Touch only on an <strong>icebreaker.</strong>
+Host <strong>icebreaker</strong> has +1 strength.
+Cost: 2
+Faction: shaper
+Side: runner
+Strength: None
+Stripped Text: Install The Personal Touch only on an icebreaker. Host icebreaker has +1 strength.
+Is Unique: False
+Subtypes: mod
+Influence Cost: 2
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Mod
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: the_toolbox
+Name: The Toolbox
+Type: hardware
+Text: +2[mu] +2[link]
+2[recurring-credit]
+Use these credits to pay for using <strong>icebreakers</strong>.
+Limit 1 <strong>console</strong> per player.
+Cost: 9
+Faction: shaper
+Side: runner
+Strength: None
+Stripped Text: +2 mu +2 link 2 recurring credits Use these credits to pay for using icebreakers. Limit 1 console per player.
+Is Unique: True
+Subtypes: console
+Influence Cost: 2
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Console
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: 2
+  MU Provided: 2
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: 2
+  Rez Effect: False
+  Trash Ability: False
+
+ID: tinkering
+Name: Tinkering
+Type: event
+Text: Choose a piece of ice. That ice gains <strong>sentry</strong>, <strong>code gate</strong>, and <strong>barrier</strong> until the end of the turn.
+Cost: 0
+Faction: shaper
+Side: runner
+Strength: None
+Stripped Text: Choose a piece of ice. That ice gains sentry, code gate, and barrier until the end of the turn.
+Is Unique: False
+Subtypes: mod
+Influence Cost: 4
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Mod
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: None
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: tollbooth
+Name: Tollbooth
+Type: ice
+Text: When the Runner encounters this ice, they must pay 3[credit], if able. If they do not, end the run.
+[subroutine] End the run.
+Cost: 8
+Faction: nbn
+Side: corp
+Strength: 5
+Stripped Text: When the Runner encounters this ice, they must pay 3 credits, if able. If they do not, end the run. Subroutine End the run.
+Is Unique: False
+Subtypes: code_gate
+Influence Cost: 2
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Code Gate
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: 1
+  On Encounter Effect: True
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+
+ID: wall_of_static
+Name: Wall of Static
+Type: ice
+Text: [subroutine] End the run.
+Cost: 3
+Faction: neutral_corp
+Side: corp
+Strength: 3
+Stripped Text: Subroutine End the run.
+Is Unique: False
+Subtypes: barrier
+Influence Cost: 0
+Base Link: None
+Deck Limit: 3
+Influence Limit: None
+Advancement Requirement: None
+Agenda Points: None
+Trash Cost: None
+Memory Cost: None
+Date Release: 2012-09-06
+Minimum Deck Size: None
+Display Subtypes: Barrier
+  Additional Cost: False
+  Advanceable: False
+  Gains Subroutines: False
+  Interrupt: False
+  Link Provided: None
+  MU Provided: None
+  Number of Printed Subroutines: 1
+  On Encounter Effect: False
+  Performs Trace: False
+  Recurring Credits Provided: None
+  Rez Effect: False
+  Trash Ability: False
+

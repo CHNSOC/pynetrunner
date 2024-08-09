@@ -17,8 +17,6 @@ class Card:
         self.base_link = attributes.get('base_link')
         self.deck_limit = attributes.get('deck_limit')
         self.influence_limit = attributes.get('influence_limit', '')
-        self.advancement_requirement = attributes.get(
-            'advancement_requirement')
         self.agenda_points = attributes.get('agenda_points')
         self.trash_cost = attributes.get('trash_cost')
         self.memory_cost = attributes.get('memory_cost')
@@ -26,35 +24,60 @@ class Card:
         self.minimum_deck_size = attributes.get('minimum_deck_size')
         self.display_subtypes = attributes.get('display_subtypes', "")
 
-        # Add card_abilities
-        self.card_abilities = attributes.get('card_abilities', {})
+        self.effects = {}
 
-        # For easier access, we can also add individual attributes for each ability
-        self.additional_cost = self.card_abilities.get(
-            'additional_cost', False)
-        self.advanceable = self.card_abilities.get('advanceable', False)
-        self.gains_subroutines = self.card_abilities.get(
-            'gains_subroutines', False)
-        self.interrupt = self.card_abilities.get('interrupt', False)
-        self.link_provided = self.card_abilities.get('link_provided')
-        self.mu_provided = self.card_abilities.get('mu_provided')
-        self.num_printed_subroutines = self.card_abilities.get(
-            'num_printed_subroutines', 0)
-        self.on_encounter_effect = self.card_abilities.get(
-            'on_encounter_effect', False)
-        self.performs_trace = self.card_abilities.get('performs_trace', False)
-        self.recurring_credits_provided = self.card_abilities.get(
-            'recurring_credits_provided')
-        self.rez_effect = self.card_abilities.get('rez_effect', False)
-        self.trash_ability = self.card_abilities.get('trash_ability', False)
+    def to_string(self):
+        attributes = [
+            f"ID: {self.id}",
+            f"Name: {self.name}",
+            f"Type: {self.type}",
+            f"Text: {self.text}",
+            f"Cost: {self.cost}",
+            f"Faction: {self.faction}",
+            f"Side: {self.side}",
+            f"Strength: {self.strength}",
+            f"Stripped Text: {self.stripped_text}",
+            f"Is Unique: {self.is_unique}",
+            f"Subtypes: {', '.join(self.subtypes)}",
+            f"Influence Cost: {self.influence_cost}",
+            f"Base Link: {self.base_link}",
+            f"Deck Limit: {self.deck_limit}",
+            f"Influence Limit: {self.influence_limit}",
+            f"Advancement Requirement: {self.advancement_requirement}",
+            f"Agenda Points: {self.agenda_points}",
+            f"Trash Cost: {self.trash_cost}",
+            f"Memory Cost: {self.memory_cost}",
+            f"Date Release: {self.date_release}",
+            f"Minimum Deck Size: {self.minimum_deck_size}",
+            f"Display Subtypes: {self.display_subtypes}",
+            f"  Additional Cost: {self.additional_cost}",
+            f"  Advanceable: {self.advanceable}",
+            f"  Gains Subroutines: {self.gains_subroutines}",
+            f"  Interrupt: {self.interrupt}",
+            f"  Link Provided: {self.link_provided}",
+            f"  MU Provided: {self.mu_provided}",
+            f"  Number of Printed Subroutines: {self.num_printed_subroutines}",
+            f"  On Encounter Effect: {self.on_encounter_effect}",
+            f"  Performs Trace: {self.performs_trace}",
+            f"  Recurring Credits Provided: {self.recurring_credits_provided}",
+            f"  Rez Effect: {self.rez_effect}",
+            f"  Trash Ability: {self.trash_ability}"
+        ]
+        return '\n'.join(attributes)
 
     def play(self, player, game):
         if player.credits >= self.cost:
             player.credits -= self.cost
             player.clicks -= 1
-            self.effect(player, game)
+            game.effect_manager.handle_on_play(self, player)
             return True
         return False
+
+    def use_click_ability(self, player, game):
+        game.effect_manager.handle_click_ability(self, player)
+
+    def use_paid_ability(self, player, game, ability_index):
+        game.effect_manager.handle_paid_ability(self, player, ability_index)
 
     def apply_data(self, data):
         self.id = data.get("id")

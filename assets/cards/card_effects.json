@@ -1,54 +1,339 @@
-[
-  {
-    "id": "adonis_campaign",
-    "type": "asset",
-    "on_rez": {
-      "action": "place_credits",
-      "amount": 12
-    },
-    "on_turn_begin": {
-      "action": "gain_credits",
-      "amount": 3
-    },
-    "on_token_empty": {
-      "action": "trash_self"
+{
+  "weyland_consortium_building_a_better_world": {
+    "type": "identity",
+    "effects": {
+      "persistent": [
+        {
+          "trigger": "play_transaction",
+          "type": "gain_credits",
+          "amount": 1
+        }
+      ]
     }
   },
-  {
-    "id": "hedge_fund",
-    "type": "operation",
-    "on_play": {
-      "action": "gain_credits",
-      "amount": 9
+  "kate_mac_mccaffrey_digital_tinker": {
+    "type": "identity",
+    "effects": {
+      "persistent": [
+        {
+          "trigger": "install_first",
+          "type": "reduce_cost",
+          "amount": 1,
+          "targets": ["program", "hardware"]
+        }
+      ]
     }
   },
-  {
-    "id": "corroder",
+  "diesel": {
+    "type": "event",
+    "effects": {
+      "on_play": [
+        {
+          "type": "draw_cards",
+          "amount": 3
+        }
+      ]
+    }
+  },
+  "easy_mark": {
+    "type": "event",
+    "effects": {
+      "on_play": [
+        {
+          "type": "gain_credits",
+          "amount": 3
+        }
+      ]
+    }
+  },
+  "infiltration": {
+    "type": "event",
+    "effects": {
+      "on_play": [
+        {
+          "type": "player_choice",
+          "choices": [
+            {
+              "type": "gain_credits",
+              "amount": 2
+            },
+            {
+              "type": "expose_card",
+              "amount": 1
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "modded": {
+    "type": "event",
+    "effects": {
+      "on_play": [
+        {
+          "type": "install_with_discount",
+          "amount": 3,
+          "targets": ["program", "hardware"]
+        }
+      ]
+    }
+  },
+  "sure_gamble": {
+    "type": "event",
+    "effects": {
+      "on_play": [
+        {
+          "type": "gain_credits",
+          "amount": 9
+        }
+      ]
+    }
+  },
+  "the_makers_eye": {
+    "type": "event",
+    "effects": {
+      "on_play": [
+        {
+          "type": "run",
+          "server": "R&D",
+          "additional_access": 2
+        }
+      ]
+    }
+  },
+  "tinkering": {
+    "type": "event",
+    "effects": {
+      "on_play": [
+        {
+          "type": "modify_ice",
+          "add_subtypes": ["sentry", "code_gate", "barrier"],
+          "duration": "end_of_turn"
+        }
+      ]
+    }
+  },
+  "akamatsu_mem_chip": {
+    "type": "hardware",
+    "effects": {
+      "persistent": [
+        {
+          "type": "increase_memory_units",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  "cyberfeeder": {
+    "type": "hardware",
+    "effects": {
+      "persistent": [
+        {
+          "type": "recurring_credit",
+          "amount": 1,
+          "use_for": ["icebreaker_use", "virus_install"]
+        }
+      ]
+    }
+  },
+  "rabbit_hole": {
+    "type": "hardware",
+    "effects": {
+      "persistent": [
+        {
+          "type": "increase_link_strength",
+          "amount": 1
+        }
+      ],
+      "on_install": [
+        {
+          "type": "search_and_install",
+          "card_name": "rabbit_hole"
+        }
+      ]
+    }
+  },
+  "the_personal_touch": {
+    "type": "hardware",
+    "subtype": "mod",
+    "effects": {
+      "persistent": [
+        {
+          "type": "increase_icebreaker_strength",
+          "amount": 1
+        }
+      ]
+    },
+    "install_restriction": {
+      "type": "icebreaker"
+    }
+  },
+  "the_toolbox": {
+    "type": "hardware",
+    "subtype": "console",
+    "effects": {
+      "persistent": [
+        {
+          "type": "increase_memory_units",
+          "amount": 2
+        },
+        {
+          "type": "increase_link_strength",
+          "amount": 2
+        },
+        {
+          "type": "recurring_credit",
+          "amount": 2,
+          "use_for": "icebreaker_use"
+        }
+      ]
+    }
+  },
+  "armitage_codebusting": {
+    "type": "resource",
+    "effects": {
+      "on_install": [
+        {
+          "type": "place_credits",
+          "amount": 12
+        }
+      ],
+      "click_ability": [
+        {
+          "cost": 1,
+          "type": "take_credits",
+          "amount": 2
+        }
+      ],
+      "conditional": [
+        {
+          "trigger": "no_credits",
+          "type": "trash_self"
+        }
+      ]
+    }
+  },
+  "sacrificial_construct": {
+    "type": "resource",
+    "effects": {
+      "paid_ability": [
+        {
+          "cost": "trash_self",
+          "type": "prevent_trash",
+          "targets": ["program", "hardware"]
+        }
+      ]
+    }
+  },
+  "crypsis": {
     "type": "program",
-    "subtype": "icebreaker",
-    "persistent_ability": {
-      "cost": 1,
-      "action": "break_subroutine",
-      "target": "barrier"
-    },
-    "paid_ability": {
-      "cost": 1,
-      "action": "increase_strength",
-      "amount": 1
+    "subtypes": ["ai", "icebreaker", "virus"],
+    "effects": {
+      "paid_abilities": [
+        {
+          "cost": 1,
+          "type": "break_subroutine",
+          "target": "any"
+        },
+        {
+          "cost": 1,
+          "type": "increase_strength",
+          "amount": 1
+        }
+      ],
+      "click_ability": [
+        {
+          "cost": 1,
+          "type": "place_virus_counter",
+          "amount": 1
+        }
+      ],
+      "conditional": [
+        {
+          "trigger": "end_of_encounter",
+          "condition": "used_to_break",
+          "type": "remove_counter_or_trash"
+        }
+      ]
     }
   },
-  {
-    "id": "enigma",
-    "type": "ice",
-    "subtype": "code_gate",
-    "subroutines": [
-      {
-        "action": "lose_click",
-        "target": "runner"
-      },
-      {
-        "action": "end_run"
-      }
-    ]
+  "femme_fatale": {
+    "type": "program",
+    "subtypes": ["icebreaker", "killer"],
+    "effects": {
+      "paid_abilities": [
+        {
+          "cost": 1,
+          "type": "break_subroutine",
+          "target": "sentry"
+        },
+        {
+          "cost": 2,
+          "type": "increase_strength",
+          "amount": 1
+        }
+      ],
+      "on_install": [
+        {
+          "type": "choose_ice"
+        }
+      ],
+      "conditional": [
+        {
+          "trigger": "encounter_chosen_ice",
+          "type": "bypass_ice",
+          "cost_per_subroutine": 1
+        }
+      ]
+    }
+  },
+  "gordian_blade": {
+    "type": "program",
+    "subtypes": ["icebreaker", "decoder"],
+    "effects": {
+      "paid_abilities": [
+        {
+          "cost": 1,
+          "type": "break_subroutine",
+          "target": "code_gate"
+        },
+        {
+          "cost": 1,
+          "type": "increase_strength",
+          "amount": 1,
+          "duration": "end_of_run"
+        }
+      ]
+    }
+  },
+  "ninja": {
+    "type": "program",
+    "subtypes": ["icebreaker", "killer"],
+    "effects": {
+      "paid_abilities": [
+        {
+          "cost": 1,
+          "type": "break_subroutine",
+          "target": "sentry"
+        },
+        {
+          "cost": 3,
+          "type": "increase_strength",
+          "amount": 5
+        }
+      ]
+    }
+  },
+  "magnum_opus": {
+    "type": "program",
+    "effects": {
+      "click_ability": [
+        {
+          "cost": 1,
+          "type": "gain_credits",
+          "amount": 2
+        }
+      ]
+    }
   }
-]
+}

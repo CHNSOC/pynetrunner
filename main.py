@@ -12,7 +12,7 @@ def create_deck_from_card_ids(registry, card_ids):
 def load_deck_from_json(file_path: str, card_registry: CardRegistry) -> Deck:
     with open(file_path, 'r') as file:
         deck_data = json.load(file)
-
+    identity = deck_data["identity"]
     cards = []
     for card_entry in deck_data['cards']:
         card = card_registry.get_card(card_entry['id'])
@@ -22,26 +22,23 @@ def load_deck_from_json(file_path: str, card_registry: CardRegistry) -> Deck:
             print(f"Warning: Card with ID {
                   card_entry['id']} not found in registry")
 
-    return Deck(cards)
+    return Deck(cards), identity
 
 
 def setup_game():
     card_registry = CardRegistry()
-    card_registry.load_cards_from_json('assets/cards/core_set.json')
+    card_registry.load_cards_from_json('assets/cards/core_set.json', 'assets/cards/card_effects.json')
 
     # Set up Corp
-    corp_deck = load_deck_from_json(
+    corp_deck, corp_identity = load_deck_from_json(
         'assets/decks/corp/weyland_starter.json', card_registry)
-    corp_identity = card_registry.get_card(
-        'weyland_consortium_building_a_better_world')
-    corp = Corp(corp_identity.name, corp_deck)
+    
+    corp = Corp(corp_deck, card_registry.get_card(corp_identity))
 
     # Set up Runner
-    runner_deck = load_deck_from_json(
+    runner_deck, runner_identity = load_deck_from_json(
         'assets/decks/runner/shaper_starter.json', card_registry)
-    runner_identity = card_registry.get_card(
-        'kate_mac_mccaffrey_digital_tinker')
-    runner = Runner(runner_identity.name, runner_deck)
+    runner = Runner(runner_deck, card_registry.get_card(runner_identity))
 
     game = Game(corp, runner, card_registry)
     return game
