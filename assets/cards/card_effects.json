@@ -11,6 +11,217 @@
       ]
     }
   },
+  "hostile_takeover": {
+    "type": "agenda",
+    "effects": {
+      "on_score": [
+        {
+          "type": "gain_credits",
+          "amount": 7
+        },
+        {
+          "type": "gain_bad_publicity",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  "posted_bounty": {
+    "type": "agenda",
+    "effects": {
+      "on_score": [
+        {
+          "type": "posted_bounty_choice"
+        }
+      ]
+    }
+  },
+  "priority_requisition": {
+    "type": "agenda",
+    "effects": {
+      "on_score": [
+        {
+          "type": "install_card_with_discount",
+          "card_type": "asset",
+          "cost_mult": 0
+        }
+      ]
+    }
+  },
+  "private_security_force": {
+    "type": "agenda",
+    "effects": {
+      "on_score": [
+        {
+          "type": "psf_effect"
+        }
+      ]
+    }
+  },
+  "adonis_campaign": {
+    "type": "asset",
+    "effects": {
+      "on_install": [
+        {
+          "type": "place_credits",
+          "amount": 12
+        }
+      ],
+      "on_turn_start": [
+        {
+          "type": "take_credits",
+          "amount": 3
+        }
+      ],
+      "conditional": [
+        {
+          "trigger": "no_credits",
+          "type": "trash_self"
+        }
+      ]
+    }
+  },
+  "melange_mining_corp": {
+    "type": "asset",
+    "effects": {
+      "click_ability": [
+        {
+          "cost": 3,
+          "type": "gain_credits",
+          "amount": 7
+        }
+      ]
+    }
+  },
+  "pad_campaign": {
+    "type": "asset",
+    "effects": {
+      "on_turn_start": [
+        {
+          "type": "gain_credits",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  "anonymous_tip": {
+    "type": "operation",
+    "effects": {
+      "on_play": [
+        {
+          "type": "draw_cards",
+          "amount": 3
+        }
+      ]
+    }
+  },
+  "beanstalk_royalties": {
+    "type": "operation",
+    "effects": {
+      "on_play": [
+        {
+          "type": "gain_credits",
+          "amount": 3
+        }
+      ]
+    }
+  },
+  "hedge_fund": {
+    "type": "operation",
+    "effects": {
+      "on_play": [
+        {
+          "type": "gain_credits",
+          "amount": 9
+        }
+      ]
+    }
+  },
+  "shipment_from_kaguya": {
+    "type": "operation",
+    "effects": {
+      "on_play": [
+        {
+          "type": "advance_cards",
+          "amount": 2,
+          "tokens_each": 1
+        }
+      ]
+    }
+  },
+  "hadrians_wall": {
+    "type": "ice",
+    "effects": {
+      "paid_abilities": [
+        {
+          "cost": 1,
+          "cost_type": "advancement_token",
+          "type": "increase_strength",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  "ice_wall": {
+    "type": "ice",
+    "effects": {
+      "paid_abilities": [
+        {
+          "cost": 1,
+          "cost_type": "advancement_token",
+          "type": "increase_strength",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  "wall_of_static": {
+    "type": "ice",
+    "effects": {}
+  },
+  "enigma": {
+    "type": "ice",
+    "effects": {}
+  },
+  "tollbooth": {
+    "type": "ice",
+    "effects": {
+      "on_encounter": [
+        {
+          "type": "paywall_effect"
+        }
+      ]
+    }
+  },
+  "archer": {
+    "type": "ice",
+    "effects": {
+      "on_rez": [
+        {
+          "type": "additional_cost",
+          "cost_type": "agenda",
+          "amount": 1
+        }
+      ]
+    }
+  },
+  "rototurret": {
+    "type": "ice",
+    "effects": {}
+  },
+  "shadow": {
+    "type": "ice",
+    "effects": {
+      "paid_abilities": [
+        {
+          "cost": 1,
+          "cost_type": "advancement_token",
+          "type": "increase_strength",
+          "amount": 1
+        }
+      ]
+    }
+  },
   "kate_mac_mccaffrey_digital_tinker": {
     "type": "identity",
     "effects": {
