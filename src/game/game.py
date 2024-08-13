@@ -8,6 +8,7 @@ from ..players.player import Player, Deck
 from ..cards.base import Card
 from ..cards.card_types import ICE, Agenda, Operation, Program, Event, Hardware, Resource, Asset, Upgrade
 from .run_result import RunResult
+from ..effects.effect_manager import EffectManager, GlobalEffect
 
 
 class GamePhase(Enum):
@@ -29,55 +30,6 @@ class GamePhase(Enum):
     RUN_END = auto()
 
 
-class EffectManager:
-    def __init__(self, game):
-        self.game = game
-
-    def handle_on_play(self, card, player):
-        effects = card.effects.get('on_play', [])
-        for effect in effects:
-            self.apply_effect(effect, card, player)
-
-    def handle_click_ability(self, card, player):
-        effects = card.effects.get('click_ability', [])
-        for effect in effects:
-            if player.clicks >= effect['cost']:
-                player.clicks -= effect['cost']
-                self.apply_effect(effect, card, player)
-
-    def handle_paid_ability(self, card, player, ability_index):
-        abilities = card.effects.get('paid_abilities', [])
-        if 0 <= ability_index < len(abilities):
-            ability = abilities[ability_index]
-            if player.credits >= ability['cost']:
-                player.credits -= ability['cost']
-                self.apply_effect(ability, card, player)
-
-    def apply_effect(self, effect, card, player):
-        effect_type = effect['type']
-        if effect_type == 'draw_cards':
-            player.draw(effect['amount'])
-        elif effect_type == 'gain_credits':
-            player.gain_credits(effect['amount'])
-        elif effect_type == 'run':
-            self.game.run(player, effect['server'])
-        # Add more effect types as needed
-
-    def handle_persistent_effects(self, player):
-        for card in player.installed_cards:
-            effects = card.effects.get('persistent', [])
-            for effect in effects:
-                self.apply_persistent_effect(effect, card, player)
-
-    def apply_persistent_effect(self, effect, card, player):
-        effect_type = effect['type']
-        if effect_type == 'increase_memory_units':
-            player.memory_units += effect['amount']
-        elif effect_type == 'increase_link_strength':
-            player.link_strength += effect['amount']
-        # Add more persistent effect types as needed
-
-
 class Server:
     def __init__(self, name: str, is_central: bool = False):
         self.name: str = name
@@ -88,8 +40,8 @@ class Server:
 
 
 class Corp(Player):
-    def __init__(self, name: str, deck: Deck):
-        super().__init__(name, deck)
+    def __init__(self, deck: Deck, identity: Card):
+        super().__init__(deck, identity)
         self.hq = Server("HQ", is_central=True)
         self.rd = Server("R&D", is_central=True)
         self.archives = Server("Archives", is_central=True)
@@ -111,7 +63,7 @@ class Corp(Player):
             elif key == 'p':
                 self.purge_virus_counters()
             elif key.isdigit() and 1 <= int(key) <= len(self.hand):
-                self.handle_card_action(game, int(key) - 1)
+                game.play_card(self, self.hand[int(key) - 1])
             elif key == readchar.key.LEFT or key == readchar.key.RIGHT:
                 # Handle cursor movement
                 pass
@@ -134,23 +86,6 @@ class Corp(Player):
         for i, card in enumerate(self.hand, 1):
             print(f"{i}: {card.name} ({card.type})")
 
-    def handle_card_action(self, game, card_index):
-        card = self.hand[card_index]
-        if card.type == 'Operation':
-            self.play_operation(game, card)
-        elif card.type in ['ICE', 'Asset', 'Upgrade', 'Agenda']:
-            self.install_card(game, card)
-        else:
-            print("Cannot play this card type.")
-
-    def play_operation(self, game, card):
-        if self.credits >= card.cost:
-            self.credits -= card.cost
-            game.handle_on_play_effect(card)
-            self.hand.remove(card)
-        else:
-            print("Not enough credits to play this operation.")
-
     def install_card(self, game, card):
         server = input(
             "Choose a server to install (HQ/R&D/Archives/1/2/3...): ")
@@ -161,9 +96,6 @@ class Corp(Player):
             self.pay(card.rez_cost)
             card.is_rezzed = True
             self.game.handle_on_rez_effect(card)
-
-    def score_agenda(self, agenda):
-        pass
 
     def install(self, card: Card, server: str):
         # Basic implementation, can be expanded later
@@ -177,8 +109,8 @@ class Corp(Player):
 
 
 class Runner(Player):
-    def __init__(self, name: str, deck: Deck):
-        super().__init__(name, deck)
+    def __init__(self, deck: Deck, identity: Card):
+        super().__init__(deck, identity)
         self.rig: Dict[str, List[Card]] = {
             "program": [], "hardware": [], "resource": []}
         self.heap: List[Card] = []
@@ -237,23 +169,6 @@ class Runner(Player):
         for i, card in enumerate(self.hand, 1):
             print(f"{i}: {card.name} ({card.type})")
 
-    def handle_card_action(self, game, card_index):
-        card = self.hand[card_index]
-        if card.type == 'Event':
-            self.play_event(game, card)
-        elif card.type in ['Program', 'Hardware', 'Resource']:
-            self.install_card(game, card)
-        else:
-            print("Cannot play this card type.")
-
-    def play_event(self, game, card):
-        if self.credits >= card.cost:
-            self.credits -= card.cost
-            game.handle_on_play_effect(card)
-            self.hand.remove(card)
-        else:
-            print("Not enough credits to play this event.")
-
     def use_icebreaker(self, icebreaker, ice):
         if icebreaker.can_interact(ice):
             cost = icebreaker.effects['persistent_ability']['cost']
@@ -276,10 +191,6 @@ class Runner(Player):
             print(f"{self.name} doesn't have enough clicks to initiate a run")
             return False
 
-    def score_agenda(self, agenda):
-        print(f"{self.name} scores {agenda.name} for {agenda.agenda_points} points!")
-        return agenda.agenda_points
-
 
 class Game:
     def __init__(self, corp: Corp, runner: Runner, card_registry):
@@ -291,6 +202,7 @@ class Game:
         self.turn_number = 0
         self.current_phase = None
         self.effect_manager = EffectManager(self)
+        self.setup_identities()
 
     def quit_game(self):
         print("Thanks for playing!")
@@ -300,8 +212,7 @@ class Game:
         self.corp.draw(5)
         self.runner.draw(5)
 
-        self.setup_identity(self.corp)
-        self.setup_identity(self.runner)
+        self.setup_identities()
 
         # Corp mulligan
         if not self.corp.has_mulliganed and self.corp_mulligan_decision():
@@ -311,8 +222,19 @@ class Game:
         if not self.runner.has_mulliganed and self.runner_mulligan_decision():
             self.runner.mulligan()
 
+    def add_global_effect(self, effect):
+        self.effect_manager.add_global_effect(effect)
+
+    def setup_identities(self):
+        self.setup_identity(self.corp)
+        self.setup_identity(self.runner)
+
     def setup_identity(self, player: Player):
-        pass
+        if player.identity:
+            identity_effects = player.identity.effects.get('persistent', [])
+            for effect in identity_effects:
+                self.effect_manager.add_global_effect(
+                    GlobalEffect(effect['trigger'], effect))
 
     def corp_mulligan_decision(self):
         self.display_hand(self.corp)
@@ -326,6 +248,13 @@ class Game:
         print(f"\n{player.name}'s hand:")
         for i, card in enumerate(player.hand):
             print(f"  {i}: {card.name} (Cost: {card.cost}, Type: {card.type})")
+
+    def play_card(self, player: Player, card: Card):
+        # ... other play logic ...
+        self.effect_manager.handle_on_play(card, player)
+        if player == self.corp and card.type == 'operation':
+            self.effect_manager.trigger_global_effects(
+                'operation_played', player=player, card=card)
 
     def trigger_phase_effects(self):
         # Trigger effects for cards in play that are relevant to the current phase
@@ -462,6 +391,36 @@ class Game:
         if not score_area:
             return 0
         return sum([card.agenda_points for card in score_area])
+
+    def score_agenda(self, agenda, player):
+        if player == self.corp:
+            self.corp.score_area.append(agenda)
+            self.corp.hand.remove(agenda)
+        self.update_score()
+        self.effect_manager.trigger_global_effects(
+            "agenda_scored_or_stolen", player=player)
+        self.handle_agenda_effects(agenda, "scored")
+
+    def steal_agenda(self, agenda, player):
+        if player == self.runner:
+            self.runner.score_area.append(agenda)
+            # Remove from appropriate Corp zone (server, R&D, etc.)
+        self.update_score()
+        self.effect_manager.trigger_global_effects(
+            "agenda_scored_or_stolen", player=player)
+        self.handle_agenda_effects(agenda, "stolen")
+
+    def handle_agenda_effects(self, agenda, action):
+        if action == "scored":
+            self.effect_manager.handle_on_score(agenda, self.corp)
+        elif action == "stolen":
+            self.effect_manager.handle_on_steal(agenda, self.runner)
+
+    def update_score(self):
+        self.corp_score = sum(agenda.points for agenda in self.corp.score_area)
+        self.runner_score = sum(
+            agenda.points for agenda in self.runner.score_area)
+        self.is_game_over()
 
     def is_game_over(self):
         if self.calculate_score(self.corp.score_area) >= 7:

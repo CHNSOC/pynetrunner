@@ -25,7 +25,7 @@ def load_deck_from_json(file_path: str, card_registry: CardRegistry) -> Deck:
     return Deck(cards), identity
 
 
-def setup_game():
+def setup_players():
     card_registry = CardRegistry()
     card_registry.load_cards_from_json(
         'assets/cards/core_set.json', 'assets/cards/card_effects.json')
@@ -46,5 +46,5 @@ def setup_game():
 
 
 if __name__ == "__main__":
-    game = setup_game()
+    game = setup_players()
     game.play_game()

@@ -26,7 +26,7 @@ class Player:
     def __init__(self, deck: Deck, identity: Optional[Card] = None):
         self.name = identity.name if identity else "Anonymous"
         self.deck = deck
-        self.identity: Optional[Card] = None
+        self.identity = identity
         self.hand: List[Card] = []
         self.credits = 5
         self.clicks = 0
