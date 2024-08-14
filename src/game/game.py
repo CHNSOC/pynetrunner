@@ -1,12 +1,14 @@
 import random
-from typing import Dict, List, Optional
+from typing import Dict, List
 from enum import Enum, auto
 import sys
 import readchar
 
 from ..players.player import Player, Deck
 from ..cards.base import Card
-from ..cards.card_types import ICE, Agenda, Operation, Program, Event, Hardware, Resource, Asset, Upgrade
+from ..cards.card_types import (
+    Agenda,
+)
 from .run_result import RunResult
 from ..effects.effect_manager import EffectManager, GlobalEffect
 
@@ -36,7 +38,50 @@ class Server:
         self.is_central: bool = is_central
         self.ice: List[Card] = []
         self.root: List[Card] = []
-        self.cards: List[Card] = []
+        self.upgrades: List[Card] = []
+
+    def examine_server(self):
+        print(f"Server: {self.name}")
+        if self.ice:
+            print("ICE:")
+            for ice in self.ice:
+                print(f"  {ice.name}")
+        if self.root:
+            print("Root:")
+            for card in self.root:
+                print(f"  {card.name}")
+        if self.upgrades:
+            print("Upgrades:")
+            for upgrade in self.upgrades:
+                print(f"  {upgrade.name}") 
+
+    def handle_card_install(self, card: Card):
+        if card.type == "ice":
+            self.ice.append(card)
+        elif card.type == "asset":
+            if len(self.root) > 0:
+                print("Cannot install assets in servers with installed cards.")
+                return
+            self.root.append(card)
+        elif card.type == "upgrade":
+            self.upgrades.append(card)
+        elif card.type == "agenda":
+            if self.is_central:
+                print("Cannot install agendas in central servers.")
+                return
+            if len(self.root) > 0:
+                print("Cannot install agendas in servers with installed cards.")
+                return
+            self.root.append(card)
+
+
+class Archives(Server):
+    def __init__(self):
+        super().__init__("Archives", is_central=True)
+        self.discard_pile = []
+
+    def handle_card_discard(self, card: Card):
+        self.discard_pile.append(card)
 
 
 class Corp(Player):
@@ -44,7 +89,7 @@ class Corp(Player):
         super().__init__(deck, identity)
         self.hq = Server("HQ", is_central=True)
         self.rd = Server("R&D", is_central=True)
-        self.archives = Server("Archives", is_central=True)
+        self.archives = Archives()
         self.remote_servers: List[Server] = []
         self.bad_publicity = 0
 
@@ -56,40 +101,50 @@ class Corp(Player):
             self.display_options(game)
             key = readchar.readkey()
 
-            if key == 'd':
+            if key == "d":
                 self.draw()
-            elif key == 'c':
+                self.clicks -= 1
+            elif key == "c":
                 self.gain_credits(1)
-            elif key == 'p':
+                self.clicks -= 1
+            elif key == "p":
                 self.purge_virus_counters()
+                self.clicks -= 1
+            elif key == "e":
+                self.examine_servers()
             elif key.isdigit() and 1 <= int(key) <= len(self.hand):
-                game.play_card(self, self.hand[int(key) - 1])
+                game.handle_card_operation(self, self.hand[int(key) - 1])
             elif key == readchar.key.LEFT or key == readchar.key.RIGHT:
                 # Handle cursor movement
                 pass
-            elif key == 'q':
+            elif key == "q":
                 break  # End turn early
             else:
                 print("Invalid input. Try again.")
                 continue
 
-            self.clicks -= 1
-
     def display_options(self, game):
-        print(
-            f"\nCorp's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
+        print(f"\nCorp's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
         print("d: Draw a card")
         print("c: Gain 1 credit")
         print("p: Purge virus counters")
+        print("e: Examine servers")
         print("q: End turn")
-        print("\nHQ:")
-        for i, card in enumerate(self.hand, 1):
-            print(f"{i}: {card.name} ({card.type})")
+        game.display_hand(self)
 
     def install_card(self, game, card):
-        server = input(
-            "Choose a server to install (HQ/R&D/Archives/1/2/3...): ")
-        self.install(card, server)
+        while True:
+            server = input(
+                f"Installing {card.name}, Choose a server to install, c to cancel (HQ/R&D/Archives/1/2/3/new...): "
+            )
+            if server.lower() in ["hq", "r&d", "archives", "new"] or server.isdigit():
+                break
+            elif server.lower() == "c":
+                print("Installation canceled.")
+                return
+            else:
+                print("Invalid server. Try again.")
+        self.install_to_server(card, server)
 
     def rez_card(self, card):
         if self.can_pay(card.rez_cost):
@@ -97,22 +152,65 @@ class Corp(Player):
             card.is_rezzed = True
             self.game.handle_on_rez_effect(card)
 
-    def install(self, card: Card, server: str):
-        # Basic implementation, can be expanded later
+    def install_to_server(self, card: Card, server: str):
         if server.lower() == "new":
-            self.remote_servers.append([card])
+            new_server = Server()
+            new_server.handle_card_install(card)
+            self.remote_servers.append(new_server)
         elif server.isdigit():
             server_index = int(server) - 1
             if 0 <= server_index < len(self.remote_servers):
-                self.remote_servers[server_index].append(card)
+                self.remote_servers[server_index].handle_card_install(card)
+        elif server.lower() == "hq":
+            self.hq.handle_card_install(card)
         # Add logic for installing in central servers if needed
+
+    def forfeit_agenda(self, agenda):
+        if agenda in self.score_area:
+            self.score_area.remove(agenda)
+            print(f"{self.name} forfeited {agenda.name}.")
+
+    def add_bad_publicity(self, amount):
+        self.bad_publicity += amount
+        print(f"{self.name} gained {amount} bad publicity.")
+
+    def get_card_to_expose(self):
+        # Implement logic to choose a card to expose
+        # This could be from HQ, R&D, or installed cards
+        pass
+
+    def handle_card_discard(self, card: Card):
+        self.archives.handle_card_discard(card)
+
+    def examine_servers(self):
+        while True:
+            print("h: Examine HQ")
+            print("r: Examine R&D")
+            print("a: Examine Archives")
+            print("q: Return")
+            for i, server in enumerate(self.remote_servers, 1):
+                print(f"{i}: Examine Remote Server {i}")
+            key = readchar.readkey()
+            if key == "h":
+                self.hq.examine_server()
+            elif key == "r":
+                self.rd.examine_server()
+            elif key == "a":
+                self.archives.examine_server()
+            elif key.isdigit() and 1 <= int(key) <= len(self.remote_servers):
+                self.remote_servers[int(key) - 1].examine_server()
+            elif key == "q":
+                break
 
 
 class Runner(Player):
     def __init__(self, deck: Deck, identity: Card):
         super().__init__(deck, identity)
         self.rig: Dict[str, List[Card]] = {
-            "program": [], "hardware": [], "resource": []}
+            "program": [],
+            "hardware": [],
+            "resource": [],
+        }
         self.heap: List[Card] = []
         self.memory_units = 4
         self.link_strength = 0
@@ -125,8 +223,9 @@ class Runner(Player):
         if card.type.lower() in self.rig:
             self.rig[card.type.lower()].append(card)
 
-    def add_tag(self, count: int = 1):
-        self.tags += count
+    def add_tag(self, amount):
+        self.tags += amount
+        print(f"{self.name} received {amount} tag{'s' if amount > 1 else ''}.")
 
     def remove_tag(self, count: int = 1):
         self.tags = max(0, self.tags - count)
@@ -136,20 +235,20 @@ class Runner(Player):
             self.display_options(game)
             key = readchar.readkey()
 
-            if key == 'd':
+            if key == "d":
                 self.draw()
-            elif key == 'c':
+            elif key == "c":
                 self.gain_credits(1)
-            elif key == 'r':
+            elif key == "r":
                 self.initiate_run(game)
-            elif key == 't':
+            elif key == "t":
                 self.remove_tag()
             elif key.isdigit() and 1 <= int(key) <= len(self.hand):
                 self.handle_card_action(game, int(key) - 1)
             elif key == readchar.key.LEFT or key == readchar.key.RIGHT:
                 # Handle cursor movement
                 pass
-            elif key == 'q':
+            elif key == "q":
                 break  # End turn early
             else:
                 print("Invalid input. Try again.")
@@ -158,8 +257,7 @@ class Runner(Player):
             self.clicks -= 1
 
     def display_options(self, game):
-        print(
-            f"\nRunner's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
+        print(f"\nRunner's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
         print("d: Draw a card")
         print("c: Gain 1 credit")
         print("r: Initiate a run")
@@ -171,7 +269,7 @@ class Runner(Player):
 
     def use_icebreaker(self, icebreaker, ice):
         if icebreaker.can_interact(ice):
-            cost = icebreaker.effects['persistent_ability']['cost']
+            cost = icebreaker.effects["persistent_ability"]["cost"]
             if self.can_pay(cost):
                 self.pay(cost)
 
@@ -191,10 +289,12 @@ class Runner(Player):
             print(f"{self.name} doesn't have enough clicks to initiate a run")
             return False
 
+    def handle_card_discard(self, card: Card):
+        self.heap.append(card)
+
 
 class Game:
     def __init__(self, corp: Corp, runner: Runner, card_registry):
-
         self.corp = corp
         self.runner = runner
         self.card_registry = card_registry
@@ -231,65 +331,77 @@ class Game:
 
     def setup_identity(self, player: Player):
         if player.identity:
-            identity_effects = player.identity.effects.get('persistent', [])
+            identity_effects = player.identity.effects.get("persistent", [])
             for effect in identity_effects:
                 self.effect_manager.add_global_effect(
-                    GlobalEffect(effect['trigger'], effect))
+                    GlobalEffect(effect["trigger"], effect)
+                )
 
     def corp_mulligan_decision(self):
         self.display_hand(self.corp)
-        return input("Corporation: Do you want to mulligan? (y/n): ").lower() == 'y'
+        return input("Corporation: Do you want to mulligan? (y/n): ").lower() == "y"
 
     def runner_mulligan_decision(self):
         self.display_hand(self.runner)
-        return input("Runner: Do you want to mulligan? (y/n): ").lower() == 'y'
+        return input("Runner: Do you want to mulligan? (y/n): ").lower() == "y"
 
     def display_hand(self, player: Player):
-        print(f"\n{player.name}'s hand:")
+        print(f"\n{player.name}'s hand:\n")
         for i, card in enumerate(player.hand):
-            print(f"  {i}: {card.name} (Cost: {card.cost}, Type: {card.type})")
+            print(
+                f"  {i + 1}: {card.name} (Cost: {card.cost}, Type: {card.type})\n\t {card.stripped_text}"
+            )
 
     def play_card(self, player: Player, card: Card):
         # ... other play logic ...
         self.effect_manager.handle_on_play(card, player)
-        if player == self.corp and card.type == 'operation':
-            self.effect_manager.trigger_global_effects(
-                'operation_played', player=player, card=card)
+        if player == self.corp:
+            if card.type == "operation":
+                self.effect_manager.trigger_global_effects(
+                    "operation_played", player=player, card=card
+                )
+            elif (
+                card.type == "ice"
+                or card.type == "asset"
+                or card.type == "upgrade"
+                or card.type == "agenda"
+            ):
+                player.install_card(self, card)
+        player.hand.remove(card)
 
     def trigger_phase_effects(self):
         # Trigger effects for cards in play that are relevant to the current phase
         pass
 
     def handle_on_rez_effect(self, card):
-        effect = card.effects.get('on_rez')
+        effect = card.effects.get("on_rez")
         if effect:
             self.apply_effect(effect, card)
 
     def handle_on_turn_begin_effect(self, card):
-        effect = card.effects.get('on_turn_begin')
+        effect = card.effects.get("on_turn_begin")
         if effect:
             self.apply_effect(effect, card)
 
     def handle_on_token_empty_effect(self, card):
-        effect = card.effects.get('on_token_empty')
+        effect = card.effects.get("on_token_empty")
         if effect:
             self.apply_effect(effect, card)
 
     def handle_on_play_effect(self, card):
-        effect = card.effects.get('on_play')
+        effect = card.effects.get("on_play")
         if effect:
             self.apply_effect(effect, card)
 
     def apply_effect(self, effect, card):
-        action = effect.get('action')
-        amount = effect.get('amount')
-        target = effect.get('target')
+        action = effect.get("action")
+        amount = effect.get("amount")
 
-        if action == 'place_credits':
+        if action == "place_credits":
             card.credits = amount
-        elif action == 'gain_credits':
+        elif action == "gain_credits":
             self.current_player.credits += amount
-        elif action == 'trash_self':
+        elif action == "trash_self":
             self.current_player.trash(card)
         # Add more actions as needed
 
@@ -328,19 +440,19 @@ class Game:
             return len(self.corp.archives_ice) > 0
         else:
             server_index = int(self.run_target.split()[-1]) - 1
-            return len(self.corp.remote_servers[server_index]['ice']) > 0
+            return len(self.corp.remote_servers[server_index]["ice"]) > 0
 
     def resolve_subroutines(self, ice):
-        for subroutine in ice.effects.get('subroutines', []):
-            action = subroutine.get('action')
-            if action == 'lose_click':
+        for subroutine in ice.effects.get("subroutines", []):
+            action = subroutine.get("action")
+            if action == "lose_click":
                 self.runner.clicks -= 1
-            elif action == 'end_run':
+            elif action == "end_run":
                 return True  # End the run
         return False  # Continue the run
 
     def runner_jacks_out(self) -> bool:
-        return input("Do you want to jack out? (y/n): ").lower() == 'y'
+        return input("Do you want to jack out? (y/n): ").lower() == "y"
 
     def run_ends_due_to_ice(self) -> bool:
         # For now, let's assume the run ends if the Runner can't break all subroutines
@@ -354,7 +466,7 @@ class Game:
         for subroutine in self.current_ice.subroutines:
             print(f"- {subroutine}")
 
-        return input("Can you break all subroutines? (y/n): ").lower() == 'y'
+        return input("Can you break all subroutines? (y/n): ").lower() == "y"
 
     def access_server(self, server):
         if server == "HQ":
@@ -382,8 +494,15 @@ class Game:
         print(f"Accessed: {card.name}")
         if isinstance(card, Agenda):
             self.runner.score_agenda(card)
-        elif card.type in ['Asset', 'Upgrade'] and self.runner.credits >= card.trash_cost:
-            if input(f"Trash {card.name} for {card.trash_cost} credits? (y/n): ").lower() == 'y':
+        elif (
+            card.type in ["Asset", "Upgrade"] and self.runner.credits >= card.trash_cost
+        ):
+            if (
+                input(
+                    f"Trash {card.name} for {card.trash_cost} credits? (y/n): "
+                ).lower()
+                == "y"
+            ):
                 self.runner.credits -= card.trash_cost
                 self.corp.trash(card)
 
@@ -391,6 +510,18 @@ class Game:
         if not score_area:
             return 0
         return sum([card.agenda_points for card in score_area])
+    
+    def handle_card_operation(self, player:Player, card:Card):
+        card.pretty_print()
+        print("\n")
+        print("What would you like to do?")
+        print("p: Play card")
+        print("q: Return")
+        key = readchar.readkey()
+        if key == "p":
+            self.play_card(player, card)
+        elif key == "q":
+            return
 
     def score_agenda(self, agenda, player):
         if player == self.corp:
@@ -398,7 +529,8 @@ class Game:
             self.corp.hand.remove(agenda)
         self.update_score()
         self.effect_manager.trigger_global_effects(
-            "agenda_scored_or_stolen", player=player)
+            "agenda_scored_or_stolen", player=player
+        )
         self.handle_agenda_effects(agenda, "scored")
 
     def steal_agenda(self, agenda, player):
@@ -407,7 +539,8 @@ class Game:
             # Remove from appropriate Corp zone (server, R&D, etc.)
         self.update_score()
         self.effect_manager.trigger_global_effects(
-            "agenda_scored_or_stolen", player=player)
+            "agenda_scored_or_stolen", player=player
+        )
         self.handle_agenda_effects(agenda, "stolen")
 
     def handle_agenda_effects(self, agenda, action):
@@ -418,22 +551,37 @@ class Game:
 
     def update_score(self):
         self.corp_score = sum(agenda.points for agenda in self.corp.score_area)
-        self.runner_score = sum(
-            agenda.points for agenda in self.runner.score_area)
+        self.runner_score = sum(agenda.points for agenda in self.runner.score_area)
         self.is_game_over()
+
+    def discard_down_to_max_hand_size(self, player: Player):
+        while len(player.hand) > player.get_max_hand_size():
+            self.display_hand(player)
+            max_hand_size = player.get_max_hand_size()
+            user_selection = input(
+                f"You have {len(player.hand)} cards. Discard down to { max_hand_size}. Choose a card to discard: "
+            )
+            if not user_selection.isdigit():
+                print("Invalid card index. Try again.")
+                continue
+            card_index = int(user_selection) - 1
+            if not 0 <= card_index < len(player.hand):
+                print("Invalid card index. Try again.")
+                continue
+            discarded_card = player.hand.pop(card_index)
+            player.handle_card_discard(discarded_card)
 
     def is_game_over(self):
         if self.calculate_score(self.corp.score_area) >= 7:
-            print(
-                f"Game Over: {self.corp.name} wins by scoring 7 agenda points!")
+            print(f"Game Over: {self.corp.name} wins by scoring 7 agenda points!")
             return True
         elif self.calculate_score(self.runner.score_area) >= 7:
-            print(
-                f"Game Over: {self.runner.name} wins by stealing 7 agenda points!")
+            print(f"Game Over: {self.runner.name} wins by stealing 7 agenda points!")
             return True
         elif len(self.corp.deck) == 0:
             print(
-                f"Game Over: {self.runner.name} wins! The Corp has no more cards to draw.")
+                f"Game Over: {self.runner.name} wins! The Corp has no more cards to draw."
+            )
             return True
         return False
 
@@ -482,7 +630,7 @@ class Game:
             self.corp.take_action(self)
             pass
         elif phase == GamePhase.CORP_DISCARD:
-            self.corp.discard_down_to_max_hand_size()
+            self.discard_down_to_max_hand_size(self.corp)
         elif phase == GamePhase.CORP_TURN_END:
             print("--- Corporation's Turn Ends ---")
         elif phase == GamePhase.RUNNER_TURN_BEGIN:
@@ -491,6 +639,6 @@ class Game:
             self.runner.take_action(self)
             pass
         elif phase == GamePhase.RUNNER_DISCARD:
-            self.runner.discard_down_to_max_hand_size()
+            self.discard_down_to_max_hand_size(self.runner)
         elif phase == GamePhase.RUNNER_TURN_END:
             print("--- Runner's Turn Ends ---")

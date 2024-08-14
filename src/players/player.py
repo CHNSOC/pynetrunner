@@ -70,13 +70,6 @@ class Player:
             return True
         return False
 
-    def discard_down_to_max_hand_size(self):
-        while len(self.hand) > self.get_max_hand_size():
-            max_hand_size = self.get_max_hand_size()
-            card_index = int(input(f"You have {len(self.hand)} cards. Discard down to { max_hand_size}. Choose a card to discard: ")) - 1
-            discarded_card = self.hand.pop(card_index)
-            print(f"Discarded: {discarded_card.name}")
-
     def get_max_hand_size(self) -> int:
         # Implement logic to calculate max hand size, including card effects
         return 5
