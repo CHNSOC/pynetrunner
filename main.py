@@ -1,5 +1,6 @@
 import json
-from src.game.game import Game, Corp, Runner
+from src.game.game import Game
+from src.players.player import Corp, Runner
 from src.players.player import Deck
 from src.cards.card_registry import CardRegistry
 
