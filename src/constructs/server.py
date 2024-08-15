@@ -7,8 +7,22 @@ class Server:
         self.name: str = name
         self.is_central: bool = is_central
         self.ice: List[Card] = []
-        self.root: List[Card] = []
-        self.upgrades: List[Card] = []
+        self.installed_cards: List[Card] = []
+
+    def install_ice(self, ice):
+        self.ice.append(ice)
+
+    def install(self, card: Card):
+        if card.type == "upgrade":
+            self.installed_cards.append(card)
+            card.location = self
+        elif len(self.installed_cards) == 0 or all(
+            c.type == "upgrade" for c in self.installed_cards
+        ):
+            self.installed_cards.append(card)
+            card.location = self
+        else:
+            raise ValueError("Cannot install in this server")
 
     def examine_server(self):
         print(f"Server: {self.name}")
@@ -23,7 +37,7 @@ class Server:
         if self.upgrades:
             print("Upgrades:")
             for upgrade in self.upgrades:
-                print(f"  {upgrade.name}") 
+                print(f"  {upgrade.name}")
 
     def handle_card_install(self, card: Card):
         if card.type == "ice":
@@ -52,4 +66,3 @@ class Archives(Server):
 
     def handle_card_discard(self, card: Card):
         self.discard_pile.append(card)
-

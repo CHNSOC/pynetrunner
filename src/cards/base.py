@@ -26,6 +26,10 @@ class Card:
         self.date_release = attributes.get("date_release")
         self.minimum_deck_size = attributes.get("minimum_deck_size")
         self.display_subtypes = attributes.get("display_subtypes", "")
+        self.advancement_requirement = attributes.get("advancement_requirement", 0)
+
+        self.advancement_tokens = 0
+        self.location = None
 
         self.effects = {}
 
@@ -67,7 +71,7 @@ class Card:
             f"  Trash Ability: {self.trash_ability}",
         ]
         return "\n".join(attributes)
-    
+
     @staticmethod
     def format_text(text, width=60, indent=4):
         return textwrap.fill(
@@ -78,7 +82,6 @@ class Card:
         )
 
     def pretty_print(self):
-            
         border = "+" + "-" * 68 + "+"
         separator = "|" + "-" * 68 + "|"
 
@@ -90,13 +93,13 @@ class Card:
         print(f"| Type: {self.type:<60} |")
         print(f"| Faction: {self.faction:<57} |")
         print(f"| Side: {self.side:<60} |")
-        
+
         if self.subtypes:
             print(f"| Subtypes: {', '.join(self.subtypes):<56} |")
-        
+
         if self.cost is not None:
             print(f"| Cost: {self.cost:<60} |")
-        
+
         if self.influence_cost:
             print(f"| Influence: {self.influence_cost:<55} |")
 
@@ -105,7 +108,7 @@ class Card:
         # Card text
         if self.text:
             print("| Text: " + " " * 61 + "|")
-            for line in self.format_text(self.text).split('\n'):
+            for line in self.format_text(self.text).split("\n"):
                 print(f"| {line:<66} |")
             print(separator)
 
@@ -130,8 +133,10 @@ class Card:
 
         # Additional attributes
         if self.is_unique:
-            print("| ◆ Unique                                                            |")
-        
+            print(
+                "| ◆ Unique                                                            |"
+            )
+
         print(border)
 
     def play(self, player, game):
@@ -147,6 +152,20 @@ class Card:
 
     def use_paid_ability(self, player, game, ability_index):
         game.effect_manager.handle_paid_ability(self, player, ability_index)
+
+    def can_be_advanced(self):
+        return self.type in ["agenda", "asset"] and hasattr(
+            self, "advancement_requirement"
+        )
+
+    def advance(self):
+        self.advancement_tokens += 1
+
+    def can_be_scored(self):
+        return (
+            self.type == "agenda"
+            and self.advancement_tokens >= self.advancement_requirement
+        )
 
     def apply_data(self, data):
         self.id = data.get("id")

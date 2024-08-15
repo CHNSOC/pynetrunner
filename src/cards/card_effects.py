@@ -1,6 +1,4 @@
 
-from enum import Enum, auto
-
 
 class CardEffect:
     def __init__(self, card_id, phase, condition=None, action=None):

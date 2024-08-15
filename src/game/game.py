@@ -239,7 +239,11 @@ class Game:
         print("q: Return")
         key = readchar.readkey()
         if key == "p":
-            self.play_card(player, card)
+            if isinstance(player, player.Corp):
+                player.play_card(self, card)
+            else:
+                # Handle Runner card play
+                pass
         elif key == "q":
             return
 
@@ -343,8 +347,6 @@ class Game:
         if phase == GamePhase.CORP_TURN_BEGIN:
             print("\n--- Corporation's Turn Begins ---")
         elif phase == GamePhase.CORP_DRAW:
-            if self.is_game_over():
-                return
             self.corp.draw(1)
         elif phase == GamePhase.CORP_ACTION:
             self.corp.take_action(self)
