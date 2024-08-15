@@ -133,6 +133,7 @@ class Corp(Player):
             return False
 
         self.hand.remove(card)
+        self.clicks -= 1
         return True
 
     def install_ice(self, game, ice):
@@ -183,11 +184,8 @@ class Corp(Player):
             print("Invalid choice")
             return
 
-        if card.type == "upgrade" or server.can_install(card):
-            server.install(card)
-            print(f"{card.name} installed in {server.name}")
-        else:
-            print(f"Cannot install {card.name} in {server.name}")
+        server.install(card)
+        print(f"{card.name} installed in {server.name}")
 
     def get_server(self, server_name):
         if server_name == "HQ":
@@ -216,7 +214,6 @@ class Corp(Player):
             game.effect_manager.handle_on_play(card, self)
 
             # Move the card to Archives
-            self.hand.remove(card)
             self.archives.handle_card_discard(card)
 
             print(f"{card.name} has been played and moved to Archives.")
@@ -279,11 +276,16 @@ class Corp(Player):
         print(f"Scored agenda: {agenda.name} worth {agenda.agenda_points} points.")
         game.check_win_condition()
 
-    def rez_card(self, card):
-        if self.can_pay(card.rez_cost):
-            self.pay(card.rez_cost)
-            card.is_rezzed = True
-            self.game.handle_on_rez_effect(card)
+    def rez_card(self, card: Card):
+        if card.type in ["ice", "asset", "upgrade"] and not card.is_rezzed:
+            if self.credits >= card.rez_cost:
+                self.credits -= card.rez_cost
+                card.rez()
+                print(f"{card.name} has been rezzed")
+            else:
+                print(f"Not enough credits to rez {card.name}")
+        else:
+            print(f"Cannot rez {card.name}")
 
     def forfeit_agenda(self, agenda):
         if agenda in self.score_area:
@@ -313,13 +315,13 @@ class Corp(Player):
                 print(f"{i}: Examine Remote Server {i}")
             key = readchar.readkey()
             if key == "h":
-                self.hq.examine_server()
+                self.hq.examine_server(self)
             elif key == "r":
-                self.rd.examine_server()
+                self.rd.examine_server(self)
             elif key == "a":
-                self.archives.examine_server()
+                self.archives.examine_server(self)
             elif key.isdigit() and 1 <= int(key) <= len(self.remote_servers):
-                self.remote_servers[int(key) - 1].examine_server()
+                self.remote_servers[int(key) - 1].examine_server(self)
             elif key == "q":
                 break
 

@@ -10,7 +10,9 @@ from ..cards.card_types import (
 )
 from .run_result import RunResult
 from ..effects.effect_manager import EffectManager, GlobalEffect
+from ..players.player import Corp
 import src.players.player as Player
+
 
 
 class Game:
@@ -239,8 +241,8 @@ class Game:
         print("q: Return")
         key = readchar.readkey()
         if key == "p":
-            if isinstance(player, player.Corp):
-                player.play_card(self, card)
+            if isinstance(player, Corp):
+                player.play_card(self, card) # ???
             else:
                 # Handle Runner card play
                 pass
@@ -292,8 +294,7 @@ class Game:
             if not 0 <= card_index < len(player.hand):
                 print("Invalid card index. Try again.")
                 continue
-            discarded_card = player.hand.pop(card_index)
-            player.handle_card_discard(discarded_card)
+            player.handle_card_discard(player.hand[card_index])
 
     def is_game_over(self):
         if self.calculate_score(self.corp.score_area) >= 7:

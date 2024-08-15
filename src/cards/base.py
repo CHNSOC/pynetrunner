@@ -1,32 +1,48 @@
 import textwrap
 
 
+def parse_attribute(attributes: dict, key, default_value, data_type=str):
+    value = attributes.get(key, default_value)
+    if value is None:
+        return default_value
+    try:
+        return data_type(value)
+    except (ValueError, TypeError):
+        print(f"Warning: Invalid {key} value '{value}'. Using default: {default_value}")
+        return default_value
+
+
 class Card:
     def __init__(self, card_data):
         attributes = card_data.get("attributes", {})
 
-        self.id = card_data.get("id", "")
-        self.name = attributes.get("title", "")
-        self.type = attributes.get("card_type_id", "")
-        self.text = attributes.get("text", "")
-        self.cost = attributes.get("cost")
-        self.faction = attributes.get("faction_id", "")
-        self.side = attributes.get("side_id", "")
-        self.strength = attributes.get("strength")
-        self.stripped_text = attributes.get("stripped_text", "")
-        self.is_unique = attributes.get("is_unique", False)
-        self.subtypes = attributes.get("card_subtype_ids", [])
-        self.influence_cost = attributes.get("influence_cost")
-        self.base_link = attributes.get("base_link")
-        self.deck_limit = attributes.get("deck_limit")
-        self.influence_limit = attributes.get("influence_limit", "")
-        self.agenda_points = attributes.get("agenda_points")
-        self.trash_cost = attributes.get("trash_cost")
-        self.memory_cost = attributes.get("memory_cost")
-        self.date_release = attributes.get("date_release")
-        self.minimum_deck_size = attributes.get("minimum_deck_size")
-        self.display_subtypes = attributes.get("display_subtypes", "")
-        self.advancement_requirement = attributes.get("advancement_requirement", 0)
+        self.id = card_data.get("id")
+        self.name = parse_attribute(attributes, "title", "")
+        self.type = parse_attribute(attributes, "card_type_id", "")
+        self.text = parse_attribute(attributes, "text", "")
+        self.cost = parse_attribute(attributes, "cost", 0, int)
+        self.faction = parse_attribute(attributes, "faction_id", "")
+        self.side = parse_attribute(attributes, "side_id", "")
+        self.strength = parse_attribute(attributes, "strength", None)
+        self.stripped_text = parse_attribute(attributes, "stripped_text", "")
+        self.is_unique = parse_attribute(attributes, "is_unique", False, bool)
+        self.subtypes = parse_attribute(attributes, "card_subtype_ids", None, list)
+        self.influence_cost = parse_attribute(attributes, "influence_cost", None, int)
+        self.base_link = parse_attribute(attributes, "base_link", None, int)
+        self.deck_limit = parse_attribute(attributes, "deck_limit", None, int)
+        self.influence_limit = parse_attribute(attributes, "influence_limit", "")
+        self.agenda_points = parse_attribute(attributes, "agenda_points", None, int)
+        self.trash_cost = parse_attribute(attributes, "trash_cost", None, int)
+        self.memory_cost = parse_attribute(attributes, "memory_cost", None, int)
+        self.date_release = parse_attribute(attributes, "date_release", None)
+        self.is_rezzed = False
+        self.minimum_deck_size = parse_attribute(
+            attributes, "minimum_deck_size", None, int
+        )
+        self.display_subtypes = parse_attribute(attributes, "display_subtypes", "")
+        self.advancement_requirement = parse_attribute(
+            attributes, "advancement_requirement", 0, int
+        )
 
         self.advancement_tokens = 0
         self.location = None
@@ -93,9 +109,9 @@ class Card:
         print(f"| Type: {self.type:<60} |")
         print(f"| Faction: {self.faction:<57} |")
         print(f"| Side: {self.side:<60} |")
-
         if self.subtypes:
-            print(f"| Subtypes: {', '.join(self.subtypes):<56} |")
+            subtypes = ", ".join(self.subtypes)
+            print(f"| Subtypes: {subtypes:<56} |")
 
         if self.cost is not None:
             print(f"| Cost: {self.cost:<60} |")
@@ -153,13 +169,22 @@ class Card:
     def use_paid_ability(self, player, game, ability_index):
         game.effect_manager.handle_paid_ability(self, player, ability_index)
 
+    def rez(self):
+        if self.type in ["ice", "asset", "upgrade"]:
+            self.is_rezzed = True
+
+    def derez(self):
+        if self.type in ["ice", "asset", "upgrade"]:
+            self.is_rezzed = False
+
+    def advance(self):
+        if self.type == "agenda" or (self.type == "asset" and self.can_be_advanced):
+            self.advancement_tokens += 1
+
     def can_be_advanced(self):
         return self.type in ["agenda", "asset"] and hasattr(
             self, "advancement_requirement"
         )
-
-    def advance(self):
-        self.advancement_tokens += 1
 
     def can_be_scored(self):
         return (
