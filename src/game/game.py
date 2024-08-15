@@ -14,7 +14,6 @@ from ..players.player import Corp
 import src.players.player as Player
 
 
-
 class Game:
     def __init__(self, corp, runner, card_registry):
         self.corp = corp
@@ -73,6 +72,15 @@ class Game:
             print(
                 f"  {i + 1}: {card.name} (Cost: {card.cost}, Type: {card.type})\n\t {card.stripped_text}"
             )
+
+    def display_runner_resources(self):
+        resources = self.runner.get_installed_resources()
+        if not resources:
+            print("The Runner has no installed resources.")
+        else:
+            print("Runner's installed resources:")
+            for i, resource in enumerate(resources):
+                print(f"{i+1}: {resource.name}")
 
     def play_card(self, player: Player.Corp | Player.Runner, card: Card):
         # This handles playing a card from the player's hand
@@ -190,6 +198,19 @@ class Game:
 
         return input("Can you break all subroutines? (y/n): ").lower() == "y"
 
+    def purge_all_virus_counters(self):
+        # Remove virus counters from all installed cards
+        for card in (
+            self.corp.get_all_installed_cards() + self.runner.get_all_installed_cards()
+        ):
+            if hasattr(card, "virus_counters"):
+                card.virus_counters = 0
+
+        # Trigger any "when virus counters are purged" effects
+        self.effect_manager.trigger_virus_purge_effects()
+
+        print("All virus counters have been purged.")
+
     def access_server(self, server):
         if server == "HQ":
             return self.access_hq()
@@ -242,7 +263,7 @@ class Game:
         key = readchar.readkey()
         if key == "p":
             if isinstance(player, Corp):
-                player.play_card(self, card) # ???
+                player.play_card(self, card)  # ???
             else:
                 # Handle Runner card play
                 pass
@@ -278,7 +299,7 @@ class Game:
     def update_score(self):
         self.corp_score = sum(agenda.points for agenda in self.corp.score_area)
         self.runner_score = sum(agenda.points for agenda in self.runner.score_area)
-        self.is_game_over()
+        self.check_win_condition()
 
     def discard_down_to_max_hand_size(self, player: Player):
         while len(player.hand) > player.get_max_hand_size():
@@ -296,7 +317,7 @@ class Game:
                 continue
             player.handle_card_discard(player.hand[card_index])
 
-    def is_game_over(self):
+    def check_win_condition(self):
         if self.calculate_score(self.corp.score_area) >= 7:
             print(f"Game Over: {self.corp.name} wins by scoring 7 agenda points!")
             return True
@@ -312,11 +333,11 @@ class Game:
 
     def play_game(self):
         self.setup_game()
-        while not self.is_game_over():
+        while not self.check_win_condition():
             self.turn_number += 1
             print(f"\n--- Turn {self.turn_number} ---")
             self.play_corp_turn()
-            if self.is_game_over():
+            if self.check_win_condition():
                 break
             self.play_runner_turn()
 
@@ -344,6 +365,15 @@ class Game:
     def execute_phase(self, phase):
         self.current_phase = phase
         self.trigger_phase_effects()
+
+        corp_effects = self.corp.get_active_effects(phase)
+        for card, effect in corp_effects:
+            self.effect_manager.handle_effect(effect, card)
+
+        # Handle Runner's active effects
+        runner_effects = self.runner.get_active_effects(phase)
+        for card, effect in runner_effects:
+            self.effect_manager.handle_effect(effect, card)
 
         if phase == GamePhase.CORP_TURN_BEGIN:
             print("\n--- Corporation's Turn Begins ---")

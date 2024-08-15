@@ -181,6 +181,13 @@ class Card:
         if self.type == "agenda" or (self.type == "asset" and self.can_be_advanced):
             self.advancement_tokens += 1
 
+    def add_virus_counter(self):
+        self.virus_counters += 1
+
+    def remove_virus_counter(self):
+        if self.virus_counters > 0:
+            self.virus_counters -= 1
+
     def can_be_advanced(self):
         return self.type in ["agenda", "asset"] and hasattr(
             self, "advancement_requirement"

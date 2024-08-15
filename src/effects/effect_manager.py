@@ -31,6 +31,14 @@ class EffectManager:
             if effect.trigger == trigger:
                 effect.action(self.game, **kwargs)
 
+    def trigger_virus_purge_effects(self):
+        for card in (
+            self.game.corp.get_all_installed_cards()
+            + self.game.runner.get_all_installed_cards()
+        ):
+            if "on_virus_purge" in card.effects:
+                self.handle_effect(card.effects["on_virus_purge"], card)
+
     def apply_effect(self, effect, card, player):
         effect_type = effect["type"]
 
@@ -126,6 +134,13 @@ class EffectManager:
 
     def apply_persistent_effect(self, effect, card, player):
         self.apply_effect(effect, card, player)
+
+    def handle_effect(self, effect, card):
+        effect_type = effect.get("type")
+        if effect_type == "draw":
+            self.game.current_player.draw(effect.get("amount", 1))
+        elif effect_type == "gain_credits":
+            self.game.current_player.gain_credits(effect.get("amount", 1))
 
 
 class GlobalEffect:

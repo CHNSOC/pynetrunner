@@ -7,6 +7,7 @@ class ICE(Card):
     def __init__(self, card_data):
         super().__init__(card_data)
         self.strength = card_data["attributes"].get("strength", 0)
+        self.virus_counters = 0
         self.subroutines = self.parse_subroutines(
             card_data["attributes"].get("text", "")
         )
@@ -22,9 +23,6 @@ class ICE(Card):
 class Agenda(Card):
     def __init__(self, card_data):
         super().__init__(card_data)
-        self.advancement_requirement = card_data["attributes"].get(
-            "advancement_requirement", 0
-        )
         self.agenda_points = card_data["attributes"].get("agenda_points", 0)
 
 

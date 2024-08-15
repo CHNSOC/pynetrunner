@@ -75,6 +75,13 @@ class Player:
         # Implement logic to calculate max hand size, including card effects
         return 5
 
+    def get_active_effects(self, phase):
+        active_effects = []
+        for card in self.get_all_installed_cards():
+            if phase in card.effects:
+                active_effects.append((card, card.effects[phase]))
+        return active_effects
+
 
 class Corp(Player):
     def __init__(self, deck: Deck, identity: Card):
@@ -84,6 +91,13 @@ class Corp(Player):
         self.archives = Archives()
         self.remote_servers: List[Server] = []
         self.bad_publicity = 0
+
+    def get_all_installed_cards(self):
+        installed_cards = []
+        for server in [self.hq, self.rd, self.archives] + self.remote_servers:
+            installed_cards.extend(server.ice)
+            installed_cards.extend(server.installed_cards)
+        return installed_cards
 
     def __str__(self):
         return f"{super().__str__()}, Scored Area: {self.score_area}, Remote servers: {len(self.remote_servers)}"
@@ -100,12 +114,13 @@ class Corp(Player):
                 self.gain_credits(1)
                 self.clicks -= 1
             elif key == "p":
-                self.purge_virus_counters()
-                self.clicks -= 1
+                if self.purge_virus_counters(game):
+                    self.clicks -= 1
             elif key == "e":
                 self.examine_servers()
             elif key == "a":
-                self.advance_card(game)
+                if self.advance_card(game):
+                    self.clicks -= 1
             elif key.isdigit() and 1 <= int(key) <= len(self.hand):
                 game.handle_card_operation(self, self.hand[int(key) - 1])
             else:
@@ -119,6 +134,7 @@ class Corp(Player):
         print("c: Gain 1 credit")
         print("p: Purge virus counters")
         print("e: Examine servers")
+        print("a: Advance a card")
         print("t: Trash a resource if runner is tagged")
         print("q: End turn")
         game.display_hand(self)
@@ -296,6 +312,74 @@ class Corp(Player):
         self.bad_publicity += amount
         print(f"{self.name} gained {amount} bad publicity.")
 
+    def trash_resource(self, game):
+        if game.runner.tags == 0:
+            print("The Runner is not tagged. Cannot trash a resource.")
+            return False
+
+        if self.credits < 2:
+            print("Not enough credits to trash a resource.")
+            return False
+
+        resources = game.runner.get_installed_resources()
+        if not resources:
+            print("The Runner has no installed resources.")
+            return False
+
+        print("Runner's installed resources:")
+        for i, resource in enumerate(resources):
+            print(f"{i+1}: {resource.name}")
+
+        choice = input("Choose a resource to trash (q to cancel): ")
+        if choice == "q":
+            return False
+
+        try:
+            index = int(choice) - 1
+            if 0 <= index < len(resources):
+                resource_to_trash = resources[index]
+                self.credits -= 2
+                game.runner.trash_resource(resource_to_trash)
+                print(f"Trashed {resource_to_trash.name}. Corp spent 2 credits.")
+                return True
+            else:
+                print("Invalid choice.")
+                return False
+        except ValueError:
+            print("Invalid input.")
+            return False
+
+    def purge_virus_counters(self, game):
+        if self.clicks >= 3:
+            self.clicks -= 3
+            game.purge_all_virus_counters()
+            print(f"{self.name} purged all virus counters.")
+            return True
+        else:
+            print("Not enough clicks to purge virus counters.")
+            return False
+
+    def purge_all_virus_counters(self):
+        # Remove virus counters from installed cards
+        for card in self.corp.installed_cards + self.runner.installed_cards:
+            if hasattr(card, "virus_counters"):
+                card.virus_counters = 0
+
+        # Remove virus counters from cards in servers
+        for server in self.corp.remote_servers + [
+            self.corp.hq,
+            self.corp.rd,
+            self.corp.archives,
+        ]:
+            for card in server.installed_cards:
+                if hasattr(card, "virus_counters"):
+                    card.virus_counters = 0
+
+        # Trigger any "when virus counters are purged" effects
+        self.effect_manager.trigger_virus_purge_effects()
+
+        print("All virus counters have been purged.")
+
     def get_card_to_expose(self):
         # Implement logic to choose a card to expose
         # This could be from HQ, R&D, or installed cards
@@ -338,6 +422,9 @@ class Runner(Player):
         self.memory_units = 4
         self.link_strength = 0
         self.tags = 0
+
+    def get_all_installed_cards(self):
+        return self.rig["program"] + self.rig["hardware"] + self.rig["resource"]
 
     def __str__(self):
         return f"{super().__str__()}, {len(self.rig['program'])} programs, {len(self.rig['hardware'])} hardware, {len(self.rig['resource'])} resources"
@@ -387,9 +474,7 @@ class Runner(Player):
         print("r: Initiate a run")
         print("t: Remove a tag")
         print("q: End turn")
-        print("\nHand:")
-        for i, card in enumerate(self.hand, 1):
-            print(f"{i}: {card.name} ({card.type})")
+        game.display_hand(self)
 
     def use_icebreaker(self, icebreaker, ice):
         if icebreaker.can_interact(ice):
@@ -415,3 +500,11 @@ class Runner(Player):
 
     def handle_card_discard(self, card: Card):
         self.heap.append(card)
+
+    def get_installed_resources(self):
+        return self.rig["resource"]
+
+    def trash_resource(self, resource: Card):
+        self.rig["resource"].remove(resource)
+        self.heap.append(resource)
+        print(f"{self.name}'s resource {resource.name} was trashed.")
