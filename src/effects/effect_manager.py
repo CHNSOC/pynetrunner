@@ -8,6 +8,11 @@ class EffectManager:
         for effect in effects:
             self.apply_effect(effect, card, player)
 
+    def handle_on_rez(self, card, player):
+        effects = card.effects.get("on_rez", [])
+        for effect in effects:
+            self.apply_effect(effect, card, player)
+
     def handle_click_ability(self, card, player):
         effects = card.effects.get("click_ability", [])
         for effect in effects:

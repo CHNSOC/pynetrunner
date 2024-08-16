@@ -12,7 +12,7 @@ class ICE(Card):
             card_data["attributes"].get("text", "")
         )
         self.num_printed_subroutines = len(self.subroutines)
-        
+        self.is_rezzed = False
 
     def parse_subroutines(self, text):
         return [
@@ -93,8 +93,8 @@ class Asset(Card):
     def __init__(self, card_data):
         super().__init__(card_data)
         self.trash_cost = card_data["attributes"].get("trash_cost", 0)
-        self.rez_cost = card_data["attributes"].get("rez_cost", 0)
-        self.rezzed = False
+
+        self.is_rezzed = False
         self.installed = False
         self.advancement_tokens = 0
 
@@ -103,3 +103,5 @@ class Upgrade(Card):
     def __init__(self, card_data):
         super().__init__(card_data)
         self.trash_cost = card_data["attributes"].get("trash_cost", 0)
+
+        self.is_rezzed = False

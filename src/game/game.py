@@ -1,6 +1,7 @@
 import random
 from enum import Enum, auto
 import sys
+import os
 import readchar
 
 from ..cards.base import Card
@@ -8,10 +9,11 @@ from ..cards.base import Card
 from ..cards.card_types import (
     Agenda,
 )
-from .run_result import RunResult
+
 from ..effects.effect_manager import EffectManager, GlobalEffect
-from ..players.player import Corp
+from ..players.player import Corp, Runner
 import src.players.player as Player
+from ..constructs.server import RemoteServer
 
 
 class Game:
@@ -67,11 +69,94 @@ class Game:
         return input("Runner: Do you want to mulligan? (y/n): ").lower() == "y"
 
     def display_hand(self, player: Player):
-        print(f"\n{player.name}'s hand:\n")
-        for i, card in enumerate(player.hand):
+        detailed = False
+        current_card = 0
+
+        while True:
+            self.clear_screen()  # Implement this method to clear the console
+            print(f"\n{player.name}'s hand ({len(player.hand)} cards):")
+
+            for i, card in enumerate(player.hand):
+                if i == current_card:
+                    print("> ", end="")
+                else:
+                    print("  ", end="")
+
+                basic_info = f"{i + 1}: {card.name} ({card.type})"
+
+                if isinstance(player, Corp):
+                    basic_info += f" - Rez Cost: {card.cost}"
+                else:
+                    basic_info += f" - Install Cost: {card.cost}"
+
+                if card.type == "ice":
+                    basic_info += f", Strength: {card.strength}"
+                elif card.type == "agenda":
+                    basic_info += f", Advance Req: {card.advancement_requirement}, Agenda Points: {card.agenda_points}"
+
+                print(basic_info)
+
+                if detailed and i == current_card:
+                    if card.subtypes:
+                        print(f"   Subtypes: {', '.join(card.subtypes)}")
+                    if card.type == "ice" and hasattr(card, "subroutines"):
+                        print("   Subroutines:")
+                        for subroutine in card.subroutines:
+                            print(f"    [⊡] {subroutine}")
+                    elif card.stripped_text:
+                        print(f"   Effect: {card.stripped_text}")
+                    if card.type in ["asset", "upgrade"] and hasattr(
+                        card, "trash_cost"
+                    ):
+                        print(f"   Trash Cost: {card.trash_cost}")
+                    print()  # Add a blank line for readability in detailed view
+
+            if isinstance(player, Runner):
+                print(
+                    f"\nInstalled: Programs: {len(player.rig['program'])}, Hardware: {len(player.rig['hardware'])}, Resources: {len(player.rig['resource'])}"
+                )
+            elif isinstance(player, Corp):
+                total_ice = sum(
+                    len(server.ice)
+                    for server in [player.hq, player.rd, player.archives]
+                    + player.remote_servers
+                )
+                total_assets_upgrades = sum(
+                    len(server.upgrades)
+                    for server in [player.hq, player.rd, player.archives]
+                    + player.remote_servers
+                )
+                total_assets_upgrades += sum(
+                    1
+                    for server in player.remote_servers
+                    if server.installed_card is not None
+                )
+                print(
+                    f"\nInstalled: Ice: {total_ice}, Assets/Upgrades/Agendas: {total_assets_upgrades}"
+                )
+
+            print("\nControls:")
             print(
-                f"  {i + 1}: {card.name} (Cost: {card.cost}, Type: {card.type})\n\t {card.stripped_text}"
+                "↑/↓: Navigate cards | D: Toggle detailed view | Q: Quit | Enter: Select card"
             )
+
+            key = readchar.readkey()
+            if key == readchar.key.UP and current_card > 0:
+                current_card -= 1
+            elif key == readchar.key.DOWN and current_card < len(player.hand) - 1:
+                current_card += 1
+            elif key.lower() == "d":
+                detailed = not detailed
+            elif key.lower() == "q":
+                break
+            elif key == readchar.key.ENTER:
+                return player.hand[current_card]
+
+        return None
+
+    def select_card_from_hand(self, player):
+        selected_card = self.display_hand(player)
+        return selected_card
 
     def display_runner_resources(self):
         resources = self.runner.get_installed_resources()
@@ -103,11 +188,6 @@ class Game:
         # Trigger effects for cards in play that are relevant to the current phase
         pass
 
-    def handle_on_rez_effect(self, card):
-        effect = card.effects.get("on_rez")
-        if effect:
-            self.apply_effect(effect, card)
-
     def handle_on_turn_begin_effect(self, card):
         effect = card.effects.get("on_turn_begin")
         if effect:
@@ -136,20 +216,31 @@ class Game:
         # Add more actions as needed
 
     def run(self, runner, server):
+        print(f"{runner.name} initiates a run on {server}")
+
+        # 1. Initiation Phase
         self.current_phase = GamePhase.RUN_INITIATION
+        runner.gain_credits(self.corp.bad_publicity)
+
         ice_list = self.get_ice_protecting_server(server)
 
+        # 2. Confrontation Phase
         for ice in ice_list:
             self.current_phase = GamePhase.RUN_APPROACH_ICE
             if runner.decide_to_continue():
                 self.current_phase = GamePhase.RUN_ENCOUNTER_ICE
                 runner.encounter_ice(ice)
             else:
-                return RunResult(False, [], "Runner jacked out")
+                print(f"{runner.name} jacks out.")
+                return
 
+        # 3. Access Phase
         self.current_phase = GamePhase.RUN_SUCCESS
         accessed_cards = self.access_server(server)
-        return RunResult(True, accessed_cards, "Run successful")
+        for card in accessed_cards:
+            self.handle_accessed_card(card)
+
+        print(f"Run on {server} successful.")
 
     def get_ice_protecting_server(self, server):
         if server == "HQ":
@@ -159,7 +250,33 @@ class Game:
         elif server == "Archives":
             return self.corp.archives.ice
         else:
-            return self.corp.remote_servers[int(server)].ice
+            return self.corp.remote_servers[int(server.split()[-1]) - 1].ice
+
+    def access_server(self, server):
+        if server == "HQ":
+            return [random.choice(self.corp.hand)]
+        elif server == "R&D":
+            return [self.corp.deck.cards[-1]]
+        elif server == "Archives":
+            return self.corp.archives.cards
+        else:
+            return self.corp.remote_servers[int(server.split()[-1]) - 1].cards
+
+    def handle_accessed_card(self, card):
+        print(f"Accessed: {card.name}")
+        if isinstance(card, Agenda):
+            self.runner.score_agenda(card)
+        elif (
+            card.type in ["asset", "upgrade"] and self.runner.credits >= card.trash_cost
+        ):
+            if (
+                input(
+                    f"Trash {card.name} for {card.trash_cost} credits? (y/n): "
+                ).lower()
+                == "y"
+            ):
+                self.runner.credits -= card.trash_cost
+                self.corp.trash(card)
 
     def server_has_ice(self) -> bool:
         if self.run_target == "HQ":
@@ -211,15 +328,44 @@ class Game:
 
         print("All virus counters have been purged.")
 
-    def access_server(self, server):
-        if server == "HQ":
-            return self.access_hq()
-        elif server == "R&D":
-            return self.access_rd()
-        elif server == "Archives":
-            return self.access_archives()
-        else:
-            return self.access_remote_server(int(server))
+    def corp_rez_opportunity(self):
+        while True:
+            print("\nRez opportunity:")
+            unrezzed_cards = self.get_unrezzed_corp_cards()
+            for i, card in enumerate(unrezzed_cards):
+                print(f"{i+1}. {card.name} (Rez cost: {card.rez_cost})")
+            print("0. Done rezzing")
+
+            choice = input("Choose a card to rez (or 0 to finish): ")
+            if choice == "0":
+                break
+            try:
+                card_index = int(choice) - 1
+                if 0 <= card_index < len(unrezzed_cards):
+                    self.corp.rez_card(unrezzed_cards[card_index], self)
+                else:
+                    print("Invalid choice. Try again.")
+            except ValueError:
+                print("Invalid input. Try again.")
+
+    def get_unrezzed_corp_cards(self):
+        unrezzed_cards = []
+        for server in [
+            self.corp.hq,
+            self.corp.rd,
+            self.corp.archives,
+        ] + self.corp.remote_servers:
+            unrezzed_cards.extend([ice for ice in server.ice if not ice.is_rezzed])
+            unrezzed_cards.extend(
+                [upgrade for upgrade in server.upgrades if not upgrade.is_rezzed]
+            )
+            if (
+                isinstance(server, RemoteServer)
+                and server.installed_card
+                and not server.installed_card.is_rezzed
+            ):
+                unrezzed_cards.append(server.installed_card)
+        return unrezzed_cards
 
     def access_hq(self):
         return [random.choice(self.corp.hq.cards)]
@@ -232,22 +378,6 @@ class Game:
 
     def access_remote_server(self, server_index):
         return self.corp.remote_servers[server_index].cards
-
-    def handle_accessed_card(self, card):
-        print(f"Accessed: {card.name}")
-        if isinstance(card, Agenda):
-            self.runner.score_agenda(card)
-        elif (
-            card.type in ["Asset", "Upgrade"] and self.runner.credits >= card.trash_cost
-        ):
-            if (
-                input(
-                    f"Trash {card.name} for {card.trash_cost} credits? (y/n): "
-                ).lower()
-                == "y"
-            ):
-                self.runner.credits -= card.trash_cost
-                self.corp.trash(card)
 
     def calculate_score(self, score_area):
         if not score_area:
@@ -349,6 +479,7 @@ class Game:
         self.corp.clicks = 3
         while self.corp.clicks > 0:
             self.execute_phase(GamePhase.CORP_ACTION)
+            self.corp_rez_opportunity()
         self.execute_phase(GamePhase.CORP_DISCARD)
         self.execute_phase(GamePhase.CORP_TURN_END)
 
@@ -395,6 +526,9 @@ class Game:
             self.discard_down_to_max_hand_size(self.runner)
         elif phase == GamePhase.RUNNER_TURN_END:
             print("--- Runner's Turn Ends ---")
+
+    def clear_screen(self):
+        os.system("cls" if os.name == "nt" else "clear")
 
 
 class GamePhase(Enum):

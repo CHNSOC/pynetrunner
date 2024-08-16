@@ -1,54 +1,66 @@
-from typing import List
 from ..cards.base import Card
 import src.players.player as Player
 
 
 class Server:
-    def __init__(self, name: str, is_central: bool = False):
-        self.name: str = name
-        self.is_central: bool = is_central
-        self.ice: List[Card] = []
-        self.installed_cards: List[Card] = []
+    def __init__(self, name):
+        self.name = name
+        self.ice = []
+        self.upgrades = []
 
     def install_ice(self, ice):
         self.ice.append(ice)
 
-    def install(self, card: Card):
-        if card.type == "upgrade":
-            self.installed_cards.append(card)
-            card.location = self
-        elif len(self.installed_cards) == 0 or all(
-            c.type == "upgrade" for c in self.installed_cards
-        ):
-            self.installed_cards.append(card)
-            card.location = self
-        else:
-            raise ValueError("Cannot install in this server")
+    def install_upgrade(self, upgrade):
+        self.upgrades.append(upgrade)
 
     def examine_server(self, player):
-        print(f"\n=== {self.name} ===")
+        is_corp = isinstance(player, Player.Corp)
 
-        # Display ICE
-        if self.ice:
-            print("ICE (outermost to innermost):")
-            for i, ice in enumerate(self.ice, 1):
-                status = self.get_card_status(ice)
-                print(f"  {i}. {ice.name:<20} {status}")
-        else:
-            print("No ICE installed")
+        print(f"\n{'=' * 40}")
+        print(f"{self.name} Details".center(40))
+        print(f"{'=' * 40}")
 
-        print("\nInstalled cards:")
+        self._print_ice(is_corp)
+        self._print_upgrades(is_corp)
+        self._print_server_specific_info(is_corp)
 
-        # Display installed cards
-        if self.installed_cards:
-            for i, card in enumerate(self.installed_cards, 1):
-                status = self.get_card_status(card)
-                card_info = self.get_card_info(card)
-                print(f"  {i}. {card_info:<20} {status}")
-        else:
-            print("  No cards installed")
+        input("\nPress Enter to return to server list...")
 
-        print("\n" + "=" * (len(self.name) + 8))
+    def _print_ice(self, is_corp):
+        print("\nICE (outermost to innermost):")
+        if not self.ice:
+            print("  No ICE installed")
+        for i, ice in enumerate(self.ice):
+            if is_corp or ice.is_rezzed:
+                print(
+                    f"  {i+1}. {ice.name} ({'Rezzed' if ice.is_rezzed else 'Unrezzed'})"
+                )
+                if ice.is_rezzed:
+                    print(f"     Strength: {ice.strength}")
+                    print("     Subroutines:")
+                    for subroutine in ice.subroutines:
+                        print(f"      [⊡] {subroutine}")
+            else:
+                print(f"  {i+1}. Unknown ICE (Unrezzed)")
+
+    def _print_upgrades(self, is_corp):
+        print("\nUpgrades:")
+        if not self.upgrades:
+            print("  No upgrades installed")
+        for i, upgrade in enumerate(self.upgrades):
+            if is_corp or upgrade.is_rezzed:
+                print(
+                    f"  {i+1}. {upgrade.name} ({'Rezzed' if upgrade.is_rezzed else 'Unrezzed'})"
+                )
+                if upgrade.is_rezzed:
+                    print(f"     Trash cost: {upgrade.trash_cost}")
+            else:
+                print(f"  {i+1}. Unknown upgrade (Unrezzed)")
+
+    def _print_server_specific_info(self, is_corp):
+        # To be overridden by subclasses
+        pass
 
     def get_card_status(self, card: Card) -> str:
         if card.type in ["ice", "asset", "upgrade"]:
@@ -62,10 +74,92 @@ class Server:
         return f"{card.name} ({card.type})"
 
 
+class RemoteServer(Server):
+    def __init__(self, name):
+        super().__init__(name)
+        self.installed_card = None  # Can be an asset or agenda
+
+    def install_card(self, card):
+        if self.installed_card:
+            raise ValueError("This server already has an installed card")
+        self.installed_card = card
+
+    def _print_server_specific_info(self, is_corp):
+        print("\nInstalled Card:")
+        if self.installed_card:
+            if is_corp or self.installed_card.is_rezzed:
+                print(
+                    f"  {self.installed_card.name} ({'Rezzed' if self.installed_card.is_rezzed else 'Unrezzed'})"
+                )
+                if self.installed_card.is_rezzed:
+                    if self.installed_card.type == "asset":
+                        print(f"     Trash cost: {self.installed_card.trash_cost}")
+                    elif self.installed_card.type == "agenda":
+                        print(
+                            f"     Advancement requirement: {self.installed_card.advancement_requirement}"
+                        )
+                        print(
+                            f"     Agenda points: {self.installed_card.agenda_points}"
+                        )
+                        print(
+                            f"     Current advancements: {self.installed_card.advancement_tokens}"
+                        )
+            else:
+                print("  Unknown card (Unrezzed)")
+        else:
+            print("  No card installed")
+
+
+class HQ(Server):
+    def __init__(self):
+        super().__init__("HQ")
+        self.cards = []  # The Corp's hand
+
+    def _print_server_specific_info(self, is_corp):
+        if is_corp:
+            print(f"\nCards in HQ: {len(self.cards)}")
+            for i, card in enumerate(self.cards):
+                print(f"  {i+1}. {card.name}")
+        else:
+            print(f"\nCards in HQ: {len(self.cards)} (inaccessible)")
+
+
+class RD(Server):
+    def __init__(self):
+        super().__init__("R&D")
+        self.cards = []  # This will be automatically updated by the Corp's deck property
+
+    def _print_server_specific_info(self, is_corp):
+        if is_corp:
+            print(f"\nCards in R&D: {len(self.cards)}")
+            print("Top 5 cards:")
+            for i, card in enumerate(self.cards[:5]):
+                print(f"  {i+1}. {card.name}")
+        else:
+            print(
+                f"\nCards in R&D: {len(self.cards)} (top card accessible during runs)"
+            )
+
+
 class Archives(Server):
     def __init__(self):
-        super().__init__("Archives", is_central=True)
-        self.discard_pile = []
+        super().__init__("Archives")
+        self.face_up_cards = []
+        self.face_down_cards = []
 
-    def handle_card_discard(self, card: Card):
-        self.discard_pile.append(card)
+    def handle_card_discard(self, card, face_up=True):
+        if face_up:
+            self.face_up_cards.append(card)
+        else:
+            self.face_down_cards.append(card)
+
+    def _print_server_specific_info(self, is_corp):
+        total_cards = len(self.face_up_cards) + len(self.face_down_cards)
+        print(f"\nTotal cards in Archives: {total_cards}")
+        print(f"Face-up cards: {len(self.face_up_cards)}")
+        if is_corp:
+            print(f"Face-down cards: {len(self.face_down_cards)}")
+        if is_corp or self.face_up_cards:
+            print("\nFace-up cards:")
+            for card in self.face_up_cards:
+                print(f"  - {card.name}")

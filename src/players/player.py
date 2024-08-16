@@ -5,7 +5,7 @@ from random import shuffle
 
 from ..cards.base import Card
 import src.game.game as Game
-from ..constructs.server import Server, Archives
+import src.constructs.server as Server
 
 
 class Deck:
@@ -85,18 +85,46 @@ class Player:
 
 class Corp(Player):
     def __init__(self, deck: Deck, identity: Card):
-        super().__init__(deck, identity)
-        self.hq = Server("HQ", is_central=True)
-        self.rd = Server("R&D", is_central=True)
-        self.archives = Archives()
-        self.remote_servers: List[Server] = []
+        self._deck = deck
+        self._hand = []
+        self.hq = Server.HQ()
+        self.rd = Server.RD()
+        self.archives = Server.Archives()
+        self.remote_servers: List[Server.RemoteServer] = []
         self.bad_publicity = 0
+        super().__init__(deck, identity)
+
+    @property
+    def deck(self):
+        return self._deck
+
+    @deck.setter
+    def deck(self, value):
+        self._deck = value
+        self.rd.cards = self._deck.cards
+
+    @property
+    def hand(self):
+        return self._hand
+
+    @hand.setter
+    def hand(self, value):
+        self._hand = value
+        self.hq.cards = self._hand
+
+    def draw(self, count=1):
+        for _ in range(count):
+            if self.deck:
+                card = self.deck.draw()
+                self.hand.append(card)
 
     def get_all_installed_cards(self):
         installed_cards = []
         for server in [self.hq, self.rd, self.archives] + self.remote_servers:
             installed_cards.extend(server.ice)
-            installed_cards.extend(server.installed_cards)
+            installed_cards.extend(server.upgrades)
+            if isinstance(server, Server.RemoteServer) and server.installed_card:
+                installed_cards.append(server.installed_card)
         return installed_cards
 
     def __str__(self):
@@ -104,28 +132,48 @@ class Corp(Player):
 
     def take_action(self, game: Game):
         while self.clicks > 0:
-            self.display_options(game)
-            key = readchar.readkey()
+            game.clear_screen()
+            print(f"\nCorp's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
+            print("d: Draw a card")
+            print("c: Gain 1 credit")
+            print("p: Play a card from hand")
+            print("i: Install a card")
+            print("a: Advance a card")
+            print("e: Examine servers")
+            print("z: Purge virus counters")
+            print("r: Rez a card")
+            print("q: End turn")
 
-            if key == "d":
+            key = readchar.readkey().lower()
+
+            if key == "d" and self.clicks > 0:
                 self.draw()
                 self.clicks -= 1
-            elif key == "c":
+            elif key == "c" and self.clicks > 0:
                 self.gain_credits(1)
                 self.clicks -= 1
-            elif key == "p":
-                if self.purge_virus_counters(game):
+            elif key == "p" and self.clicks > 0:
+                card = game.select_card_from_hand(self)
+                if card and self.play_card(game, card):
                     self.clicks -= 1
-            elif key == "e":
-                self.examine_servers()
-            elif key == "a":
+            elif key == "i" and self.clicks > 0:
+                card = game.select_card_from_hand(self)
+                if card and self.install_card(game, card):
+                    self.clicks -= 1
+            elif key == "a" and self.clicks > 0:
                 if self.advance_card(game):
                     self.clicks -= 1
-            elif key.isdigit() and 1 <= int(key) <= len(self.hand):
-                game.handle_card_operation(self, self.hand[int(key) - 1])
+            elif key == "e":
+                self.examine_servers(game)
+            elif key == "z" and self.clicks >= 3:
+                if self.purge_virus_counters(game):
+                    self.clicks -= 3
+            elif key == "r" and self.clicks > 0:
+                # Implement rez_card method
+                if self.rez_card(game):
+                    self.clicks -= 1
             else:
-                print("Invalid input. Try again.")
-                continue
+                print("Invalid action. Try again.")
 
     def display_options(self, game):
         print(f"\nCorp's turn (Clicks: {
@@ -138,6 +186,13 @@ class Corp(Player):
         print("t: Trash a resource if runner is tagged")
         print("q: End turn")
         game.display_hand(self)
+
+    def create_remote_server(self):
+        new_server = Server.RemoteServer(
+            f"Remote Server {len(self.remote_servers) + 1}"
+        )
+        self.remote_servers.append(new_server)
+        return new_server
 
     def install_card(self, game, card):
         if card.type == "ice":
@@ -192,7 +247,9 @@ class Corp(Player):
         choice = int(input("Choose a server to install in: ")) - 1
 
         if choice == len(servers) - 1:
-            self.remote_servers.append(Server(f"Remote {len(self.remote_servers) + 1}"))
+            self.remote_servers.append(
+                Server.RemoteServer(f"Remote {len(self.remote_servers) + 1}")
+            )
             server = self.remote_servers[-1]
         elif choice < len(servers) - 1:
             server = self.get_server(servers[choice])
@@ -231,6 +288,8 @@ class Corp(Player):
 
             # Move the card to Archives
             self.archives.handle_card_discard(card)
+            self.hand.remove(card)
+            self.clicks -= 1
 
             print(f"{card.name} has been played and moved to Archives.")
         else:
@@ -281,9 +340,8 @@ class Corp(Player):
     def get_advanceable_cards(self):
         advanceable_cards = []
         for server in self.remote_servers:
-            for card in server.installed_cards:
-                if card.can_be_advanced():
-                    advanceable_cards.append(card)
+            if server.installed_card and server.installed_card.can_be_advanced():
+                advanceable_cards.append(server.installed_card)
         return advanceable_cards
 
     def score_agenda(self, agenda, game):
@@ -292,16 +350,64 @@ class Corp(Player):
         print(f"Scored agenda: {agenda.name} worth {agenda.agenda_points} points.")
         game.check_win_condition()
 
-    def rez_card(self, card: Card):
-        if card.type in ["ice", "asset", "upgrade"] and not card.is_rezzed:
-            if self.credits >= card.rez_cost:
-                self.credits -= card.rez_cost
-                card.rez()
-                print(f"{card.name} has been rezzed")
-            else:
-                print(f"Not enough credits to rez {card.name}")
-        else:
-            print(f"Cannot rez {card.name}")
+    def rez_card(self, card: Card, game: Game):
+        # Check if the card is a valid type for rezzing
+        if card.type not in ["ice", "asset", "upgrade"]:
+            print(f"Cannot rez {card.name}: Invalid card type.")
+            return False
+
+        # Check if the card is already rezzed
+        if card.is_rezzed:
+            print(f"{card.name} is already rezzed.")
+            return False
+
+        # Check if the card is installed
+        if not self.is_card_installed(card):
+            print(f"Cannot rez {card.name}: Card is not installed.")
+            return False
+
+        # Check if the Corp has enough credits
+        if self.credits < card.cost:
+            print(
+                f"Not enough credits to rez {card.name}. Required: {card.cost}, Available: {self.credits}"
+            )
+            return False
+
+        # Check for any additional rez requirements
+        if not self.check_additional_rez_requirements(card):
+            return False
+
+        # If all checks pass, proceed with rezzing
+        self.credits -= card.cost
+        card.is_rezzed = True
+        print(f"{card.name} has been rezzed. Paid {card.cost} credits.")
+
+        # Handle any on-rez effects
+        game.effect_manager.handle_on_rez(card, self)
+
+        return True
+
+    def is_card_installed(self, card: Card):
+        for server in [self.hq, self.rd, self.archives] + self.remote_servers:
+            if card in server.ice or card in server.upgrades:
+                return True
+            if (
+                isinstance(server, Server.RemoteServer)
+                and server.installed_card == card
+            ):
+                return True
+        return False
+
+    def check_additional_rez_requirements(self, card: Card):
+        # This method can be expanded to check for any special rezzing conditions
+        # For example, some cards might require forfeiting an agenda to rez
+        if hasattr(card, "additional_cost"):
+            if card.additional_cost == "forfeit_agenda":
+                if not self.score_area:
+                    print(f"Cannot rez {card.name}: No agenda to forfeit.")
+                    return False
+                # Implement agenda forfeiting logic here
+        return True
 
     def forfeit_agenda(self, agenda):
         if agenda in self.score_area:
@@ -360,20 +466,24 @@ class Corp(Player):
             return False
 
     def purge_all_virus_counters(self):
-        # Remove virus counters from installed cards
-        for card in self.corp.installed_cards + self.runner.installed_cards:
+        def remove_virus_counters(card):
             if hasattr(card, "virus_counters"):
                 card.virus_counters = 0
 
-        # Remove virus counters from cards in servers
-        for server in self.corp.remote_servers + [
+        # Remove virus counters from runner's installed cards
+        for card in self.runner.rig.values():
+            remove_virus_counters(card)
+
+        # Remove virus counters from corp's installed cards
+        for server in [
             self.corp.hq,
             self.corp.rd,
             self.corp.archives,
-        ]:
-            for card in server.installed_cards:
-                if hasattr(card, "virus_counters"):
-                    card.virus_counters = 0
+        ] + self.corp.remote_servers:
+            for card in server.ice + server.upgrades:
+                remove_virus_counters(card)
+            if isinstance(server, Server.RemoteServer) and server.installed_card:
+                remove_virus_counters(server.installed_card)
 
         # Trigger any "when virus counters are purged" effects
         self.effect_manager.trigger_virus_purge_effects()
@@ -389,24 +499,27 @@ class Corp(Player):
         self.archives.handle_card_discard(card)
         self.hand.remove(card)
 
-    def examine_servers(self):
+    def examine_servers(self, game):
+        servers = [self.hq, self.rd, self.archives] + self.remote_servers
+        current_server = 0
+
         while True:
-            print("h: Examine HQ")
-            print("r: Examine R&D")
-            print("a: Examine Archives")
-            print("q: Return")
-            for i, server in enumerate(self.remote_servers, 1):
-                print(f"{i}: Examine Remote Server {i}")
+            game.clear_screen()
+            print("=== Corp Servers ===")
+            for i, server in enumerate(servers):
+                print(f"{'> ' if i == current_server else '  '}{server.name}")
+
+            print("\nControls:")
+            print("↑/↓: Navigate servers | Enter: View server details | Q: Quit")
+
             key = readchar.readkey()
-            if key == "h":
-                self.hq.examine_server(self)
-            elif key == "r":
-                self.rd.examine_server(self)
-            elif key == "a":
-                self.archives.examine_server(self)
-            elif key.isdigit() and 1 <= int(key) <= len(self.remote_servers):
-                self.remote_servers[int(key) - 1].examine_server(self)
-            elif key == "q":
+            if key == readchar.key.UP and current_server > 0:
+                current_server -= 1
+            elif key == readchar.key.DOWN and current_server < len(servers) - 1:
+                current_server += 1
+            elif key == readchar.key.ENTER:
+                servers[current_server].examine_server(self)
+            elif key.lower() == "q":
                 break
 
 
@@ -429,10 +542,6 @@ class Runner(Player):
     def __str__(self):
         return f"{super().__str__()}, {len(self.rig['program'])} programs, {len(self.rig['hardware'])} hardware, {len(self.rig['resource'])} resources"
 
-    def install(self, card: Card):
-        if card.type.lower() in self.rig:
-            self.rig[card.type.lower()].append(card)
-
     def add_tag(self, amount):
         self.tags += amount
         print(f"{self.name} received {amount} tag{'s' if amount > 1 else ''}.")
@@ -440,38 +549,59 @@ class Runner(Player):
     def remove_tag(self, count: int = 1):
         self.tags = max(0, self.tags - count)
 
-    def take_action(self, game):
+    def take_action(self, game: Game):
         while self.clicks > 0:
-            self.display_options(game)
-            key = readchar.readkey()
+            game.clear_screen()
+            print(f"\nRunner's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
+            print("d: Draw a card")
+            print("c: Gain 1 credit")
+            print("p: Play a card from hand")
+            print("i: Install a card")
+            print("e: Examine servers")
+            print("r: Make a run")
+            print("u: Use an installed card ability")
+            print("t: Remove a tag")
+            print("q: End turn")
 
-            if key == "d":
+            key = readchar.readkey().lower()
+
+            if key == "d" and self.clicks > 0:
                 self.draw()
-            elif key == "c":
+                self.clicks -= 1
+            elif key == "c" and self.clicks > 0:
                 self.gain_credits(1)
-            elif key == "r":
-                self.initiate_run(game)
-            elif key == "t":
+                self.clicks -= 1
+            elif key == "p" and self.clicks > 0:
+                card = game.select_card_from_hand(self)
+                if card and self.play_card(game, card):
+                    self.clicks -= 1
+            elif key == "i" and self.clicks > 0:
+                card = game.select_card_from_hand(self)
+                if card and self.install_card(game, card):
+                    self.clicks -= 1
+            elif key == "e":
+                self.examine_servers(game)
+            elif key == "r" and self.clicks > 0:
+                if self.make_run(game):
+                    self.clicks -= 1
+            elif key == "u" and self.clicks > 0:
+                if self.use_installed_card_ability(game):
+                    self.clicks -= 1
+            elif key == "t" and self.clicks > 0 and self.tags > 0:
                 self.remove_tag()
-            elif key.isdigit() and 1 <= int(key) <= len(self.hand):
-                self.handle_card_action(game, int(key) - 1)
-            elif key == readchar.key.LEFT or key == readchar.key.RIGHT:
-                # Handle cursor movement
-                pass
+                self.clicks -= 1
             elif key == "q":
-                break  # End turn early
+                break
             else:
-                print("Invalid input. Try again.")
-                continue
-
-            self.clicks -= 1
+                print("Invalid action. Try again.")
 
     def display_options(self, game):
-        print(f"\nRunner's turn (Clicks: {
-              self.clicks}, Credits: {self.credits}):")
+        print(f"\nRunner's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
         print("d: Draw a card")
         print("c: Gain 1 credit")
         print("r: Initiate a run")
+        print("i: Install a card")
+        print("p: Play an event")
         print("t: Remove a tag")
         print("q: End turn")
         game.display_hand(self)
@@ -482,21 +612,180 @@ class Runner(Player):
             if self.can_pay(cost):
                 self.pay(cost)
 
-    def install_card(self, game, card):
-        if self.credits >= card.cost:
-            self.credits -= card.cost
-            self.install(card)
-        else:
-            print("Not enough credits to install this card.")
+    def install_cards(self, game):
+        installable_cards = [
+            card
+            for card in self.hand
+            if card.type in ["program", "hardware", "resource"]
+        ]
+        if not installable_cards:
+            print("No cards to install.")
+            return
 
-    def initiate_run(self, server: str) -> bool:
-        if self.clicks > 0:
-            self.clicks -= 1
-            print(f"{self.name} is initiating a run on {server}")
-            return True
+        print("Cards you can install:")
+        for i, card in enumerate(installable_cards):
+            print(f"{i+1}: {card.name} (Cost: {card.cost}, Type: {card.type})")
+
+        choice = input("Choose a card to install (or 'c' to cancel): ")
+        if choice == "c":
+            return
+
+        try:
+            card_index = int(choice) - 1
+            if 0 <= card_index < len(installable_cards):
+                card = installable_cards[card_index]
+                if self.credits >= card.cost:
+                    self.credits -= card.cost
+                    self.install_card(card)
+                    self.hand.remove(card)
+                    print(f"Installed {card.name}.")
+                else:
+                    print("Not enough credits to install this card.")
+            else:
+                print("Invalid card choice.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+
+    def install_card(self, card):
+        installable_cards = [
+            card
+            for card in self.hand
+            if card.type in ["program", "hardware", "resource"]
+        ]
+        if not installable_cards:
+            print("No cards to install.")
+            return
+
+        print("Cards you can install:")
+        for i, card in enumerate(installable_cards):
+            print(f"{i+1}: {card.name} (Cost: {card.cost}, Type: {card.type})")
+
+        choice = input("Choose a card to install (or 'c' to cancel): ")
+        if choice == "c":
+            return
+
+        try:
+            card_index = int(choice) - 1
+            if 0 <= card_index < len(installable_cards):
+                card = installable_cards[card_index]
+                if self.credits >= card.cost:
+                    if (
+                        card.type == "program"
+                        and self.get_available_mu() < card.memory_cost
+                    ):
+                        print("Not enough memory units to install this program.")
+                        return
+                    self.credits -= card.cost
+                    self.install(card)
+                    self.hand.remove(card)
+                    print(f"Installed {card.name}.")
+                else:
+                    print("Not enough credits to install this card.")
+            else:
+                print("Invalid card choice.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+
+    def install(self, card):
+        if card.type.lower() in self.rig:
+            self.rig[card.type.lower()].append(card)
+            if card.type == "program":
+                self.memory_units -= card.memory_cost
         else:
-            print(f"{self.name} doesn't have enough clicks to initiate a run")
-            return False
+            print(f"Cannot install card of type {card.type}")
+
+    def get_available_mu(self):
+        used_mu = sum(card.memory_cost for card in self.rig["program"])
+        return self.memory_units - used_mu
+
+    def initiate_run(self, game):
+        servers = ["HQ", "R&D", "Archives"] + [
+            f"Remote {i+1}" for i in range(len(game.corp.remote_servers))
+        ]
+        print("Available servers:")
+        for i, server in enumerate(servers):
+            print(f"{i+1}: {server}")
+
+        choice = input("Choose a server to run on (or 'c' to cancel): ")
+        if choice == "c":
+            return
+
+        try:
+            server_index = int(choice) - 1
+            if 0 <= server_index < len(servers):
+                target_server = servers[server_index]
+                game.run(self, target_server)
+            else:
+                print("Invalid server choice.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+
+    def play_events(self, game):
+        events = [card for card in self.hand if card.type == "event"]
+        if not events:
+            print("No events to play.")
+            return
+
+        print("Events you can play:")
+        for i, card in enumerate(events):
+            print(f"{i+1}: {card.name} (Cost: {card.cost})")
+
+        choice = input("Choose an event to play (or 'c' to cancel): ")
+        if choice == "c":
+            return
+
+        try:
+            event_index = int(choice) - 1
+            if 0 <= event_index < len(events):
+                event = events[event_index]
+                if self.credits >= event.cost:
+                    self.credits -= event.cost
+                    game.play_card(self, event)
+                    self.handle_card_discard(event)
+                    print(f"Played {event.name}.")
+                else:
+                    print("Not enough credits to play this event.")
+            else:
+                print("Invalid event choice.")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+
+    def play_card(self, player, card):
+        if isinstance(player, Runner) and card.type == "event":
+            print(f"Playing event: {card.name}")
+            self.effect_manager.handle_on_play(card, player)
+            self.handle_card_discard(card)
+            print(f"{card.name} has been played and moved to the Heap.")
+        elif isinstance(player, Corp):
+            # Existing Corp card play logic
+            pass
+
+    def examine_servers(self, game):
+        servers = [
+            game.corp.hq,
+            game.corp.rd,
+            game.corp.archives,
+        ] + game.corp.remote_servers
+        current_server = 0
+
+        while True:
+            game.clear_screen()
+            print("=== Corp Servers ===")
+            for i, server in enumerate(servers):
+                print(f"{'> ' if i == current_server else '  '}{server.name}")
+
+            print("\nControls:")
+            print("↑/↓: Navigate servers | Enter: View server details | Q: Quit")
+
+            key = readchar.readkey()
+            if key == readchar.key.UP and current_server > 0:
+                current_server -= 1
+            elif key == readchar.key.DOWN and current_server < len(servers) - 1:
+                current_server += 1
+            elif key == readchar.key.ENTER:
+                servers[current_server].examine_server(self)
+            elif key.lower() == "q":
+                break
 
     def handle_card_discard(self, card: Card):
         self.heap.append(card)
