@@ -136,12 +136,10 @@ class Corp(Player):
             print(f"\nCorp's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
             print("d: Draw a card")
             print("c: Gain 1 credit")
-            print("p: Play a card from hand")
-            print("i: Install a card")
+            print("p: Play or install a card from hand")
             print("a: Advance a card")
             print("e: Examine servers")
             print("z: Purge virus counters")
-            print("r: Rez a card")
             print("q: End turn")
 
             key = readchar.readkey().lower()
@@ -156,10 +154,6 @@ class Corp(Player):
                 card = game.select_card_from_hand(self)
                 if card and self.play_card(game, card):
                     self.clicks -= 1
-            elif key == "i" and self.clicks > 0:
-                card = game.select_card_from_hand(self)
-                if card and self.install_card(game, card):
-                    self.clicks -= 1
             elif key == "a" and self.clicks > 0:
                 if self.advance_card(game):
                     self.clicks -= 1
@@ -168,24 +162,8 @@ class Corp(Player):
             elif key == "z" and self.clicks >= 3:
                 if self.purge_virus_counters(game):
                     self.clicks -= 3
-            elif key == "r" and self.clicks > 0:
-                # Implement rez_card method
-                if self.rez_card(game):
-                    self.clicks -= 1
             else:
                 print("Invalid action. Try again.")
-
-    def display_options(self, game):
-        print(f"\nCorp's turn (Clicks: {
-              self.clicks}, Credits: {self.credits}):")
-        print("d: Draw a card")
-        print("c: Gain 1 credit")
-        print("p: Purge virus counters")
-        print("e: Examine servers")
-        print("a: Advance a card")
-        print("t: Trash a resource if runner is tagged")
-        print("q: End turn")
-        game.display_hand(self)
 
     def create_remote_server(self):
         new_server = Server.RemoteServer(
@@ -235,29 +213,66 @@ class Corp(Player):
         else:
             print("Not enough credits to install this ice")
 
-    def install_in_server(self, game, card):
-        servers = ["HQ", "R&D", "Archives"] + [
-            f"Remote {i+1}" for i in range(len(self.remote_servers))
-        ]
-        servers.append("New Remote")
-
-        for i, server in enumerate(servers):
-            print(f"{i+1}: {server}")
-
-        choice = int(input("Choose a server to install in: ")) - 1
-
-        if choice == len(servers) - 1:
-            self.remote_servers.append(
-                Server.RemoteServer(f"Remote {len(self.remote_servers) + 1}")
+    def get_valid_servers(self, card):
+        if card.type == "agenda":
+            return [f"Remote {i+1}" for i in range(len(self.remote_servers))] + [
+                "New Remote"
+            ]
+        elif card.type == "asset":
+            return [f"Remote {i+1}" for i in range(len(self.remote_servers))] + [
+                "New Remote"
+            ]
+        elif card.type == "upgrade":
+            return (
+                ["HQ", "R&D", "Archives"]
+                + [f"Remote {i+1}" for i in range(len(self.remote_servers))]
+                + ["New Remote"]
             )
-            server = self.remote_servers[-1]
-        elif choice < len(servers) - 1:
-            server = self.get_server(servers[choice])
         else:
-            print("Invalid choice")
+            return []
+
+    def install_in_server(self, game, card):
+        valid_servers = self.get_valid_servers(card)
+
+        if not valid_servers:
+            print(f"Cannot install {card.type} in any server.")
             return
 
-        server.install(card)
+        while True:
+            print(f"Valid servers for {card.name} ({card.type}):")
+            for i, server in enumerate(valid_servers):
+                print(f"{i+1}: {server}")
+            print("q: Cancel")
+            selection = input("Choose a server to install in: ")
+            if selection == "q":
+                return
+            try:
+                choice = int(selection) - 1
+                if 0 <= choice < len(valid_servers):
+                    break
+                else:
+                    print("Invalid choice. Please select a valid server.")
+            except ValueError:
+                print("Invalid choice. Please enter a number.")
+
+        server_name = valid_servers[choice]
+        if server_name == "New Remote":
+            server = self.create_remote_server()
+        else:
+            server = self.get_server(server_name)
+
+        if card.type in ["asset", "agenda"] and isinstance(server, Server.RemoteServer):
+            if server.installed_card:
+                print(f"Trashing {server.installed_card.name} to install {card.name}.")
+                self.trash(server.installed_card)
+            server.installed_card = card
+        elif card.type == "upgrade":
+            server.upgrades.append(card)
+        else:
+            print(f"Cannot install {card.type} in {server.name}")
+            return
+
+        card.location = server
         print(f"{card.name} installed in {server.name}")
 
     def get_server(self, server_name):
@@ -595,17 +610,6 @@ class Runner(Player):
             else:
                 print("Invalid action. Try again.")
 
-    def display_options(self, game):
-        print(f"\nRunner's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
-        print("d: Draw a card")
-        print("c: Gain 1 credit")
-        print("r: Initiate a run")
-        print("i: Install a card")
-        print("p: Play an event")
-        print("t: Remove a tag")
-        print("q: End turn")
-        game.display_hand(self)
-
     def use_icebreaker(self, icebreaker, ice):
         if icebreaker.can_interact(ice):
             cost = icebreaker.effects["persistent_ability"]["cost"]
@@ -788,6 +792,7 @@ class Runner(Player):
                 break
 
     def handle_card_discard(self, card: Card):
+        self.hand.remove(card)
         self.heap.append(card)
 
     def get_installed_resources(self):

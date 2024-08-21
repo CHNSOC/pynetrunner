@@ -2,9 +2,8 @@
   "weyland_consortium_building_a_better_world": {
     "type": "identity",
     "effects": {
-      "persistent": [
+      "on_transaction_play": [
         {
-          "trigger": "play_transaction",
           "type": "gain_credits",
           "amount": 1
         }
@@ -61,7 +60,7 @@
   "adonis_campaign": {
     "type": "asset",
     "effects": {
-      "on_install": [
+      "on_rez": [
         {
           "type": "place_credits",
           "amount": 12

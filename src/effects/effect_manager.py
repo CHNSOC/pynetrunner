@@ -1,40 +1,17 @@
+from ..game.gamephase import GamePhase
+
+
 class EffectManager:
     def __init__(self, game):
         self.game = game
         self.global_effects = []
 
-    def handle_on_play(self, card, player):
-        effects = card.effects.get("on_play", [])
-        for effect in effects:
-            self.apply_effect(effect, card, player)
-
-    def handle_on_rez(self, card, player):
-        effects = card.effects.get("on_rez", [])
-        for effect in effects:
-            self.apply_effect(effect, card, player)
-
-    def handle_click_ability(self, card, player):
-        effects = card.effects.get("click_ability", [])
-        for effect in effects:
-            if player.clicks >= effect["cost"]:
-                player.clicks -= effect["cost"]
-                self.apply_effect(effect, card, player)
-
-    def handle_paid_ability(self, card, player, ability_index):
-        abilities = card.effects.get("paid_abilities", [])
-        if 0 <= ability_index < len(abilities):
-            ability = abilities[ability_index]
-            if player.credits >= ability["cost"]:
-                player.credits -= ability["cost"]
-                self.apply_effect(ability, card, player)
-
     def add_global_effect(self, effect):
         self.global_effects.append(effect)
 
-    def trigger_global_effects(self, trigger, **kwargs):
-        for effect in self.global_effects:
-            if effect.trigger == trigger:
-                effect.action(self.game, **kwargs)
+    def trigger_phase_effects(self, phase):
+        if phase == GamePhase.CORP_TURN_BEGIN:
+            self.handle_turn_start_effects(self.game.corp)
 
     def trigger_virus_purge_effects(self):
         for card in (
@@ -61,10 +38,24 @@ class EffectManager:
             return True  # Implement subroutine breaking logic
         elif effect_type == "net_damage":
             self.game.runner.take_damage(effect["amount"], damage_type="net")
-        elif effect_type == "gain_credits_on_transaction":
-            if card.type == "operation" and "transaction" in card.subtypes:
-                player.gain_credits(effect["amount"])
-        # Add more effect types as needed
+        elif effect_type == "take_credit":
+            amount = effect.get("amount", 0)
+            if card.hosted_counters >= amount:
+                card.hosted_counters -= amount
+                player.gain_credits(amount)
+
+        elif effect_type == "place_credits":
+            amount = effect.get("amount", 0)
+            card.hosted_counters += amount
+
+        elif effect_type == "on_transaction_play":
+            if player.faction == "Weyland Consortium":
+                player.gain_credits(1)
+
+    def handle_on_install_effects(self, card, player):
+        effects = card.effects.get("on_install", [])
+        for effect in effects:
+            self.apply_effect(effect, card, player)
 
     def handle_player_choice(self, effect, card, player):
         choices = effect.get("choices", [])
@@ -122,30 +113,48 @@ class EffectManager:
         for _ in range(amount):
             pass  # TODO: Implement card exposing logic
 
-    def describe_effect(self, effect):
-        effect_type = effect.get("type")
-        amount = effect.get("amount", 0)
-        if effect_type == "gain_credits":
-            return f"Gain {amount} credits"
-        elif effect_type == "expose_card":
-            return f"Expose {amount} card{'s' if amount > 1 else ''}"
-        return "Unknown effect"
+    def handle_on_play(self, card, player):
+        effects = card.effects.get("on_play", [])
+        for effect in effects:
+            self.apply_effect(effect, card, player)
 
-    def handle_persistent_effects(self, player):
-        for card in player.installed_cards:
-            effects = card.effects.get("persistent", [])
-            for effect in effects:
-                self.apply_persistent_effect(effect, card, player)
+        if (
+            card.type == "operation" and "transaction" in card.subtypes
+        ):  # Need to expand this to handle other subtypes
+            self.handle_identity_effects("on_transaction_play", player, card)
 
-    def apply_persistent_effect(self, effect, card, player):
-        self.apply_effect(effect, card, player)
+    def handle_turn_start_effects(self, player):
+        active_cards = self.game.get_all_active_cards()
+        for card in active_cards:
+            if "on_turn_start" in card.effects:
+                turn_Start_effects = card.effects.get("on_turn_start", [])
+                for effect in turn_Start_effects:
+                    self.apply_effect(effect, card, player)
 
-    def handle_effect(self, effect, card):
-        effect_type = effect.get("type")
-        if effect_type == "draw":
-            self.game.current_player.draw(effect.get("amount", 1))
-        elif effect_type == "gain_credits":
-            self.game.current_player.gain_credits(effect.get("amount", 1))
+    def handle_on_rez(self, card, player):
+        effects = card.effects.get("on_rez", [])
+        for effect in effects:
+            self.apply_effect(effect, card, player)
+
+    def handle_click_ability(self, card, player):
+        effects = card.effects.get("click_ability", [])
+        for effect in effects:
+            if player.clicks >= effect["cost"]:
+                player.clicks -= effect["cost"]
+                self.apply_effect(effect, card, player)
+
+    def handle_paid_ability(self, card, player, ability_index):
+        abilities = card.effects.get("paid_abilities", [])
+        if 0 <= ability_index < len(abilities):
+            ability = abilities[ability_index]
+            if player.credits >= ability["cost"]:
+                player.credits -= ability["cost"]
+                self.apply_effect(ability, card, player)
+
+    def handle_identity_effects(self, trigger, player, *args, **kwargs):
+        if trigger in player.identity.effects:
+            for effect in player.identity.effects[trigger]:
+                self.apply_effect(effect, player.identity, player)
 
 
 class GlobalEffect:

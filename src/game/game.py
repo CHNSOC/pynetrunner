@@ -1,5 +1,5 @@
 import random
-from enum import Enum, auto
+
 import sys
 import os
 import readchar
@@ -10,6 +10,7 @@ from ..cards.card_types import (
     Agenda,
 )
 
+from .gamephase import GamePhase
 from ..effects.effect_manager import EffectManager, GlobalEffect
 from ..players.player import Corp, Runner
 import src.players.player as Player
@@ -54,26 +55,24 @@ class Game:
 
     def setup_identity(self, player: Player):
         if player.identity:
-            identity_effects = player.identity.effects.get("persistent", [])
-            for effect in identity_effects:
-                self.effect_manager.add_global_effect(
-                    GlobalEffect(effect["trigger"], effect)
-                )
+            self.effect_manager.add_global_effect(player.identity)
 
     def corp_mulligan_decision(self):
-        self.display_hand(self.corp)
+        self.display_hand(self.corp, "Mulligan Phase")
         return input("Corporation: Do you want to mulligan? (y/n): ").lower() == "y"
 
     def runner_mulligan_decision(self):
-        self.display_hand(self.runner)
+        self.display_hand(self.runner, "Mulligan Phase")
         return input("Runner: Do you want to mulligan? (y/n): ").lower() == "y"
 
-    def display_hand(self, player: Player):
+    def display_hand(self, player: Player, phase=None):
         detailed = False
         current_card = 0
 
         while True:
-            self.clear_screen()  # Implement this method to clear the console
+            self.clear_screen()
+            if phase:
+                print(f"--- {phase} ---")
             print(f"\n{player.name}'s hand ({len(player.hand)} cards):")
 
             for i, card in enumerate(player.hand):
@@ -155,7 +154,7 @@ class Game:
         return None
 
     def select_card_from_hand(self, player):
-        selected_card = self.display_hand(player)
+        selected_card = self.display_hand(player, self.current_phase)
         return selected_card
 
     def display_runner_resources(self):
@@ -169,6 +168,7 @@ class Game:
 
     def play_card(self, player: Player.Corp | Player.Runner, card: Card):
         # This handles playing a card from the player's hand
+
         if player == self.corp:
             if card.type == "operation":
                 self.effect_manager.handle_on_play(card, player)
@@ -183,37 +183,6 @@ class Game:
             ):
                 player.install_card(self, card)
         player.handle_card_discard(card)
-
-    def trigger_phase_effects(self):
-        # Trigger effects for cards in play that are relevant to the current phase
-        pass
-
-    def handle_on_turn_begin_effect(self, card):
-        effect = card.effects.get("on_turn_begin")
-        if effect:
-            self.apply_effect(effect, card)
-
-    def handle_on_token_empty_effect(self, card):
-        effect = card.effects.get("on_token_empty")
-        if effect:
-            self.apply_effect(effect, card)
-
-    def handle_on_play_effect(self, card):
-        effect = card.effects.get("on_play")
-        if effect:
-            self.apply_effect(effect, card)
-
-    def apply_effect(self, effect, card):
-        action = effect.get("action")
-        amount = effect.get("amount")
-
-        if action == "place_credits":
-            card.credits = amount
-        elif action == "gain_credits":
-            self.current_player.credits += amount
-        elif action == "trash_self":
-            self.current_player.trash(card)
-        # Add more actions as needed
 
     def run(self, runner, server):
         print(f"{runner.name} initiates a run on {server}")
@@ -333,7 +302,7 @@ class Game:
             print("\nRez opportunity:")
             unrezzed_cards = self.get_unrezzed_corp_cards()
             for i, card in enumerate(unrezzed_cards):
-                print(f"{i+1}. {card.name} (Rez cost: {card.rez_cost})")
+                print(f"{i+1}. {card.name} (Rez cost: {card.cost})")
             print("0. Done rezzing")
 
             choice = input("Choose a card to rez (or 0 to finish): ")
@@ -362,6 +331,7 @@ class Game:
             if (
                 isinstance(server, RemoteServer)
                 and server.installed_card
+                and hasattr(server.installed_card, "is_rezzed")
                 and not server.installed_card.is_rezzed
             ):
                 unrezzed_cards.append(server.installed_card)
@@ -433,7 +403,7 @@ class Game:
 
     def discard_down_to_max_hand_size(self, player: Player):
         while len(player.hand) > player.get_max_hand_size():
-            self.display_hand(player)
+            self.display_hand(player, self.current_phase)
             max_hand_size = player.get_max_hand_size()
             user_selection = input(
                 f"You have {len(player.hand)} cards. Discard down to { max_hand_size}. Choose a card to discard: "
@@ -481,6 +451,7 @@ class Game:
             self.execute_phase(GamePhase.CORP_ACTION)
             self.corp_rez_opportunity()
         self.execute_phase(GamePhase.CORP_DISCARD)
+        self.corp_rez_opportunity()
         self.execute_phase(GamePhase.CORP_TURN_END)
 
     def play_runner_turn(self):
@@ -493,58 +464,82 @@ class Game:
         self.execute_phase(GamePhase.RUNNER_DISCARD)
         self.execute_phase(GamePhase.RUNNER_TURN_END)
 
-    def execute_phase(self, phase):
+    def get_all_active_cards(self):
+        active_cards = []
+
+        # Corp cards
+        active_cards.extend(self.corp.score_area)
+
+        # Corp Identity
+        active_cards.append(self.corp.identity)
+
+        # Corp servers
+        for server in [
+            self.corp.hq,
+            self.corp.rd,
+            self.corp.archives,
+        ] + self.corp.remote_servers:
+            active_cards.extend(server.ice)
+            active_cards.extend(server.upgrades)
+            if isinstance(server, RemoteServer) and server.installed_card:
+                active_cards.append(server.installed_card)
+
+        # Runner cards
+        active_cards.extend(self.runner.score_area)
+
+        # Runner Identity
+        active_cards.append(self.runner.identity)
+
+        # Runner resources
+        active_cards.extend(self.runner.rig["program"])
+        active_cards.extend(self.runner.rig["hardware"])
+        active_cards.extend(self.runner.rig["resource"])
+
+        return active_cards
+
+    def execute_phase(self, phase: GamePhase):
         self.current_phase = phase
-        self.trigger_phase_effects()
+        effect_manager: EffectManager = self.effect_manager
 
         corp_effects = self.corp.get_active_effects(phase)
         for card, effect in corp_effects:
-            self.effect_manager.handle_effect(effect, card)
+            effect_manager.handle_effect(effect, card)
 
         # Handle Runner's active effects
         runner_effects = self.runner.get_active_effects(phase)
         for card, effect in runner_effects:
-            self.effect_manager.handle_effect(effect, card)
+            effect_manager.handle_effect(effect, card)
 
         if phase == GamePhase.CORP_TURN_BEGIN:
             print("\n--- Corporation's Turn Begins ---")
+            effect_manager.trigger_phase_effects("corp_turn_begin")
         elif phase == GamePhase.CORP_DRAW:
+            effect_manager.trigger_phase_effects("corp_draw")
             self.corp.draw(1)
         elif phase == GamePhase.CORP_ACTION:
             self.corp.take_action(self)
-            pass
+            effect_manager.trigger_phase_effects("corp_action")
         elif phase == GamePhase.CORP_DISCARD:
+            effect_manager.trigger_phase_effects("corp_discard")
             self.discard_down_to_max_hand_size(self.corp)
         elif phase == GamePhase.CORP_TURN_END:
+            effect_manager.trigger_phase_effects("corp_turn_end")
             print("--- Corporation's Turn Ends ---")
         elif phase == GamePhase.RUNNER_TURN_BEGIN:
+            effect_manager.trigger_phase_effects("runner_turn_begin")
             print("\n--- Runner's Turn Begins ---")
         elif phase == GamePhase.RUNNER_ACTION:
             self.runner.take_action(self)
+            effect_manager.trigger_phase_effects("runner_action")
             pass
         elif phase == GamePhase.RUNNER_DISCARD:
+            effect_manager.trigger_phase_effects("runner_discard")
             self.discard_down_to_max_hand_size(self.runner)
         elif phase == GamePhase.RUNNER_TURN_END:
+            effect_manager.trigger_phase_effects("runner_turn_end")
             print("--- Runner's Turn Ends ---")
 
     def clear_screen(self):
-        os.system("cls" if os.name == "nt" else "clear")
-
-
-class GamePhase(Enum):
-    CORP_TURN_BEGIN = auto()
-    CORP_DRAW = auto()
-    CORP_ACTION = auto()
-    CORP_DISCARD = auto()
-    CORP_TURN_END = auto()
-    RUNNER_TURN_BEGIN = auto()
-    RUNNER_ACTION = auto()
-    RUNNER_DISCARD = auto()
-    RUNNER_TURN_END = auto()
-    RUN_INITIATION = auto()
-    RUN_APPROACH_ICE = auto()
-    RUN_ENCOUNTER_ICE = auto()
-    RUN_PASS_ICE = auto()
-    RUN_APPROACH_SERVER = auto()
-    RUN_SUCCESS = auto()
-    RUN_END = auto()
+        # os.system("cls" if os.name == "nt" else "clear")
+        print("\n\n\n")
+        pass

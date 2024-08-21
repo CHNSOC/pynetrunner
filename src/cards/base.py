@@ -45,6 +45,7 @@ class Card:
         )
 
         self.advancement_tokens = 0
+        self.hosted_counters = 0
         self.location = None
 
         self.effects = {}
