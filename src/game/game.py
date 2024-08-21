@@ -59,11 +59,13 @@ class Game:
 
     def corp_mulligan_decision(self):
         self.display_hand(self.corp, "Mulligan Phase")
-        return input("Corporation: Do you want to mulligan? (y/n): ").lower() == "y"
+        print("Would you like to mulligan? (y/n)")
+        return readchar.readkey().lower() == "y"
 
     def runner_mulligan_decision(self):
         self.display_hand(self.runner, "Mulligan Phase")
-        return input("Runner: Do you want to mulligan? (y/n): ").lower() == "y"
+        print("Would you like to mulligan? (y/n)")
+        return readchar.readkey().lower() == "y"
 
     def display_hand(self, player: Player, phase=None):
         detailed = False
@@ -301,6 +303,9 @@ class Game:
         while True:
             print("\nRez opportunity:")
             unrezzed_cards = self.get_unrezzed_corp_cards()
+            if len(unrezzed_cards) == 0:
+                print("No cards to rez.")
+                break
             for i, card in enumerate(unrezzed_cards):
                 print(f"{i+1}. {card.name} (Rez cost: {card.cost})")
             print("0. Done rezzing")
@@ -403,19 +408,13 @@ class Game:
 
     def discard_down_to_max_hand_size(self, player: Player):
         while len(player.hand) > player.get_max_hand_size():
-            self.display_hand(player, self.current_phase)
             max_hand_size = player.get_max_hand_size()
-            user_selection = input(
-                f"You have {len(player.hand)} cards. Discard down to { max_hand_size}. Choose a card to discard: "
+            user_selection = self.display_hand(
+                player,
+                f"{player.name}'s discard phase - Discard to {max_hand_size} cards",
             )
-            if not user_selection.isdigit():
-                print("Invalid card index. Try again.")
-                continue
-            card_index = int(user_selection) - 1
-            if not 0 <= card_index < len(player.hand):
-                print("Invalid card index. Try again.")
-                continue
-            player.handle_card_discard(player.hand[card_index])
+
+            player.handle_card_discard(user_selection)
 
     def check_win_condition(self):
         if self.calculate_score(self.corp.score_area) >= 7:
