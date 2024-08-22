@@ -1,7 +1,6 @@
 import random
 
 import sys
-import os
 import readchar
 
 from ..cards.base import Card
@@ -11,7 +10,7 @@ from ..cards.card_types import (
 )
 
 from .gamephase import GamePhase
-from ..effects.effect_manager import EffectManager, GlobalEffect
+from ..effects.effect_manager import EffectManager
 from ..players.player import Corp, Runner
 import src.players.player as Player
 from ..constructs.server import RemoteServer
