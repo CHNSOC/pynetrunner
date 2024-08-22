@@ -2,9 +2,10 @@ import random
 
 import sys
 import readchar
+from termcolor import colored
 
 from ..cards.base import Card
-
+from ..cards.card_formatter import CardFormatter
 from ..cards.card_types import (
     Agenda,
 )
@@ -73,26 +74,26 @@ class Game:
         while True:
             self.clear_screen()
             if phase:
-                print(f"--- {phase} ---")
+                print(colored(f"--- {phase} ---", "cyan"))
             print(f"\n{player.name}'s hand ({len(player.hand)} cards):")
 
             for i, card in enumerate(player.hand):
                 if i == current_card:
-                    print("> ", end="")
+                    print(colored("> ", "yellow", attrs=['bold']), end="")
                 else:
                     print("  ", end="")
 
-                basic_info = f"{i + 1}: {card.name} ({card.type})"
+                basic_info = f"{i + 1}: {colored(card.name, 'white', attrs=['bold'])} ({card.type})"
 
                 if isinstance(player, Corp):
-                    basic_info += f" - Rez Cost: {card.cost}"
+                    basic_info += f" - Rez Cost: {colored(str(card.cost), 'green')}"
                 else:
-                    basic_info += f" - Install Cost: {card.cost}"
+                    basic_info += f" - Install Cost: {colored(str(card.cost), 'green')}"
 
                 if card.type == "ice":
-                    basic_info += f", Strength: {card.strength}"
+                    basic_info += f", Strength: {colored(str(card.strength), 'red')}"
                 elif card.type == "agenda":
-                    basic_info += f", Advance Req: {card.advancement_requirement}, Agenda Points: {card.agenda_points}"
+                    basic_info += f", Advance Req: {colored(str(card.advancement_requirement), 'yellow')}, Agenda Points: {colored(str(card.agenda_points), 'blue')}"
 
                 print(basic_info)
 
@@ -102,13 +103,11 @@ class Game:
                     if card.type == "ice" and hasattr(card, "subroutines"):
                         print("   Subroutines:")
                         for subroutine in card.subroutines:
-                            print(f"    [⊡] {subroutine}")
-                    elif card.stripped_text:
-                        print(f"   Effect: {card.stripped_text}")
-                    if card.type in ["asset", "upgrade"] and hasattr(
-                        card, "trash_cost"
-                    ):
-                        print(f"   Trash Cost: {card.trash_cost}")
+                            print(f"    {colored('⊡', 'white')} {CardFormatter.apply_formatting(subroutine)}")
+                    elif card.text:
+                        print(f"   Effect: {CardFormatter.apply_formatting(card.text)}")
+                    if card.type in ["asset", "upgrade"] and hasattr(card, "trash_cost"):
+                        print(f"   Trash Cost: {colored(str(card.trash_cost), 'red')}")
                     print()  # Add a blank line for readability in detailed view
 
             if isinstance(player, Runner):
