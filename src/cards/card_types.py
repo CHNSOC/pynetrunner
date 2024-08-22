@@ -9,14 +9,14 @@ class ICE(Card):
         self.strength = card_data["attributes"].get("strength", 0)
         self.virus_counters = 0
         self.subroutines = self.parse_subroutines(
-            card_data["attributes"].get("text", "")
+            card_data.get("attributes", {}).get("text", "")
         )
         self.num_printed_subroutines = len(self.subroutines)
         self.is_rezzed = False
 
     def parse_subroutines(self, text):
         return [
-            line.strip() for line in text.split("\n") if line.strip().startswith("‣")
+            line.replace("[subroutine]", "").strip() for line in text.split("\n") if line.strip().startswith("[subroutine]")
         ]
 
 
