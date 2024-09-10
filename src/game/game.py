@@ -2,6 +2,7 @@ import random
 
 import sys
 import readchar
+import logging
 from termcolor import colored
 
 from ..cards.base import Card
@@ -16,6 +17,7 @@ from ..players.player import Corp, Runner
 import src.players.player as Player
 from ..constructs.server import RemoteServer
 
+logger = logging.getLogger(__name__)
 
 class Game:
     def __init__(self, corp, runner, card_registry):
@@ -41,13 +43,16 @@ class Game:
         # Corp mulligan
         if not self.corp.has_mulliganed and self.corp_mulligan_decision():
             self.corp.mulligan()
+            logger.info(f"Corp {self.corp.name} mulliganed")
 
         # Runner mulligan
         if not self.runner.has_mulliganed and self.runner_mulligan_decision():
             self.runner.mulligan()
+            logger.info(f"Runner {self.runner.name} mulliganed")
 
     def add_global_effect(self, effect):
         self.effect_manager.add_global_effect(effect)
+        logger.info(f"Added global effect: {effect}")
 
     def setup_identities(self):
         self.setup_identity(self.corp)

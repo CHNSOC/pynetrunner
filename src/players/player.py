@@ -176,7 +176,8 @@ class Corp(Player):
         if card.type == "ice":
             self.install_ice(game, card)
         elif card.type in ["asset", "upgrade", "agenda"]:
-            self.install_in_server(game, card)
+            if not self.install_in_server(game, card):
+                return False
         else:
             print(f"Cannot install {card.type}")
             return False
@@ -263,8 +264,21 @@ class Corp(Player):
 
         if card.type in ["asset", "agenda"] and isinstance(server, Server.RemoteServer):
             if server.installed_card:
-                print(f"Trashing {server.installed_card.name} to install {card.name}.")
-                self.trash(server.installed_card)
+                try:
+                    choice = input(
+                        f"Server already has a card installed. Trash {server.installed_card.name} to install {card.name}? (y/n): "
+                    )
+                    if choice.lower() == "y":
+                        print(
+                            f"Trashing {server.installed_card.name} to install {card.name}."
+                        )
+                        self.trash(server.installed_card)
+                    else:
+                        print("Installation cancelled.")
+                        return
+                except ValueError:
+                    print("Invalid choice. Installation cancelled.")
+                    return
             server.installed_card = card
         elif card.type == "upgrade":
             server.upgrades.append(card)
@@ -274,6 +288,7 @@ class Corp(Player):
 
         card.location = server
         print(f"{card.name} installed in {server.name}")
+        return True
 
     def get_server(self, server_name):
         if server_name == "HQ":
