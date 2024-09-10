@@ -152,7 +152,7 @@ class Card:
     def can_be_advanced(self):
         return self.type in ["agenda", "asset"] and hasattr(
             self, "advancement_requirement"
-        )
+        ) and self.advancement_requirement > 0
 
     def can_be_scored(self):
         return (

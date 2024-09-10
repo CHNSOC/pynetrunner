@@ -77,7 +77,7 @@ class Server:
 class RemoteServer(Server):
     def __init__(self, name):
         super().__init__(name)
-        self.installed_card = None  # Can be an asset or agenda
+        self.installed_card: Card = None  # Can be an asset or agenda
 
     def install_card(self, card):
         if self.installed_card:
@@ -88,9 +88,11 @@ class RemoteServer(Server):
         print("\nInstalled Card:")
         if self.installed_card:
             if is_corp or self.installed_card.is_rezzed:
-                print(
-                    f"  {self.installed_card.name} ({'Rezzed' if self.installed_card.is_rezzed else 'Unrezzed'})"
-                )
+                print(f"  {self.installed_card.name} ")
+                if hasattr(self.installed_card, "is_rezzed"):
+                    print(
+                        f"({'Rezzed' if self.installed_card.is_rezzed else 'Unrezzed'})"
+                    )
                 if self.installed_card.is_rezzed:
                     if self.installed_card.type == "asset":
                         print(f"     Trash cost: {self.installed_card.trash_cost}")

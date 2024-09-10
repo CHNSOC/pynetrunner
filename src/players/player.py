@@ -391,9 +391,9 @@ class Corp(Player):
                 advanceable_cards.append(server.installed_card)
         return advanceable_cards
 
-    def score_agenda(self, agenda, game):
+    def score_agenda(self, agenda: Card, game):
         self.score_area.append(agenda)
-        agenda.location.installed_cards.remove(agenda)
+        agenda.location.installed_card = None
         print(f"Scored agenda: {agenda.name} worth {agenda.agenda_points} points.")
         game.check_win_condition()
 
