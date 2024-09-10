@@ -1,1 +1,2 @@
-readchar
+readchar==4.1.03
+termcolor==2.4.0
