@@ -142,6 +142,8 @@ class EffectManager:
             if player.clicks >= effect["cost"]:
                 player.clicks -= effect["cost"]
                 self.apply_effect(effect, card, player)
+                return True
+        return False
 
     def handle_paid_ability(self, card, player, ability_index):
         abilities = card.effects.get("paid_abilities", [])

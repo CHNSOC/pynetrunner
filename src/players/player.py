@@ -127,6 +127,20 @@ class Corp(Player):
                 installed_cards.append(server.installed_card)
         return installed_cards
 
+    def use_installed_card_ability(self, game:Game):
+        installed_cards = self.get_all_installed_cards()
+        if not installed_cards:
+            print("No installed cards to use.")
+            return False
+
+        card = game.select_card_from_list(cards = installed_cards, title = "Activate ability")
+
+        if not card:
+            return False
+        
+        return game.effect_manager.handle_click_ability(card, self)
+        
+
     def __str__(self):
         return f"{super().__str__()}, Scored Area: {self.score_area}, Remote servers: {len(self.remote_servers)}"
 
@@ -138,6 +152,7 @@ class Corp(Player):
             print("c: Gain 1 credit")
             print("p: Play or install a card from hand")
             print("a: Advance a card")
+            print("s: Trigger a card ability")
             print("e: Examine servers")
             print("z: Purge virus counters")
             print("q: End turn")
@@ -157,6 +172,8 @@ class Corp(Player):
             elif key == "a" and self.clicks > 0:
                 if self.advance_card(game):
                     self.clicks -= 1
+            elif key == "s" and self.clicks > 0:
+                self.use_installed_card_ability(game)
             elif key == "e":
                 self.examine_servers(game)
             elif key == "z" and self.clicks >= 3:

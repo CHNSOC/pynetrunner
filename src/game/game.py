@@ -1,6 +1,7 @@
 import random
 
 import sys
+from typing import List, Optional
 import readchar
 import logging
 from termcolor import colored
@@ -72,17 +73,17 @@ class Game:
         print("Would you like to mulligan? (y/n)")
         return readchar.readkey().lower() == "y"
 
-    def display_hand(self, player: Player, phase=None):
+    def select_card_from_list(self, cards: List[Card], player: str = "", title: Optional[str] = None) -> Optional[Card]:
         detailed = False
         current_card = 0
-
+        
         while True:
             self.clear_screen()
-            if phase:
-                print(colored(f"--- {phase} ---", "cyan"))
-            print(f"\n{player.name}'s hand ({len(player.hand)} cards):")
+            if title:
+                print(colored(f"--- {title} ---", "cyan"))
+            print(f"\n{player} ({len(cards)} cards):")
 
-            for i, card in enumerate(player.hand):
+            for i, card in enumerate(cards):
                 if i == current_card:
                     print(colored("> ", "yellow", attrs=['bold']), end="")
                 else:
@@ -90,12 +91,10 @@ class Game:
 
                 basic_info = f"{i + 1}: {colored(card.name, 'white', attrs=['bold'])} ({card.type})"
 
-                if isinstance(player, Corp):
-                    basic_info += f" - Rez Cost: {colored(str(card.cost), 'green')}"
-                else:
-                    basic_info += f" - Install Cost: {colored(str(card.cost), 'green')}"
-
-                if card.type == "ice":
+                if hasattr(card, 'cost'):
+                    basic_info += f" - Cost: {colored(str(card.cost), 'green')}"
+                
+                if card.type == "ice" and hasattr(card, 'strength'):
                     basic_info += f", Strength: {colored(str(card.strength), 'red')}"
                 elif card.type == "agenda":
                     basic_info += f", Advance Req: {colored(str(card.advancement_requirement), 'yellow')}, Agenda Points: {colored(str(card.agenda_points), 'blue')}"
@@ -103,60 +102,26 @@ class Game:
                 print(basic_info)
 
                 if detailed and i == current_card:
-                    if card.subtypes:
-                        print(f"   Subtypes: {', '.join(card.subtypes)}")
-                    if card.type == "ice" and hasattr(card, "subroutines"):
-                        print("   Subroutines:")
-                        for subroutine in card.subroutines:
-                            print(f"    {colored('⊡', 'white')} {CardFormatter.apply_formatting(subroutine)}")
-                    elif card.text:
-                        print(f"   Effect: {CardFormatter.apply_formatting(card.text)}")
-                    if card.type in ["asset", "upgrade"] and hasattr(card, "trash_cost"):
-                        print(f"   Trash Cost: {colored(str(card.trash_cost), 'red')}")
-                    print()  # Add a blank line for readability in detailed view
-
-            if isinstance(player, Runner):
-                print(
-                    f"\nInstalled: Programs: {len(player.rig['program'])}, Hardware: {len(player.rig['hardware'])}, Resources: {len(player.rig['resource'])}"
-                )
-            elif isinstance(player, Corp):
-                total_ice = sum(
-                    len(server.ice)
-                    for server in [player.hq, player.rd, player.archives]
-                    + player.remote_servers
-                )
-                total_assets_upgrades = sum(
-                    len(server.upgrades)
-                    for server in [player.hq, player.rd, player.archives]
-                    + player.remote_servers
-                )
-                total_assets_upgrades += sum(
-                    1
-                    for server in player.remote_servers
-                    if server.installed_card is not None
-                )
-                print(
-                    f"\nInstalled: Ice: {total_ice}, Assets/Upgrades/Agendas: {total_assets_upgrades}"
-                )
+                    card.pretty_print()  # print_card_details is not highlighted in IDE
 
             print("\nControls:")
-            print(
-                "↑/↓: Navigate cards | D: Toggle detailed view | Q: Quit | Enter: Select card"
-            )
+            print("↑/↓: Navigate cards | D: Toggle detailed view | Q: Quit | Enter: Select card")
 
             key = readchar.readkey()
             if key == readchar.key.UP and current_card > 0:
                 current_card -= 1
-            elif key == readchar.key.DOWN and current_card < len(player.hand) - 1:
+            elif key == readchar.key.DOWN and current_card < len(cards) - 1:
                 current_card += 1
             elif key.lower() == "d":
                 detailed = not detailed
             elif key.lower() == "q":
-                break
+                return None
             elif key == readchar.key.ENTER:
-                return player.hand[current_card]
+                return cards[current_card]
+        
 
-        return None
+    def display_hand(self, player: Player, phase=None):
+        return self.select_card_from_list(player.hand, f"{player.name}'s hand", phase)
 
     def select_card_from_hand(self, player):
         selected_card = self.display_hand(player, self.current_phase)
@@ -362,22 +327,6 @@ class Game:
             return 0
         return sum([card.agenda_points for card in score_area])
 
-    def handle_card_operation(self, player: Player, card: Card):
-        card.pretty_print()
-        print("\n")
-        print("What would you like to do?")
-        print("p: Play card")
-        print("q: Return")
-        key = readchar.readkey()
-        if key == "p":
-            if isinstance(player, Corp):
-                player.play_card(self, card)  # ???
-            else:
-                # Handle Runner card play
-                pass
-        elif key == "q":
-            return
-
     def score_agenda(self, agenda, player):
         if player == self.corp:
             self.corp.score_area.append(agenda)
@@ -514,31 +463,31 @@ class Game:
 
         if phase == GamePhase.CORP_TURN_BEGIN:
             print("\n--- Corporation's Turn Begins ---")
-            effect_manager.trigger_phase_effects("corp_turn_begin")
+            effect_manager.trigger_phase_effects(GamePhase.CORP_TURN_BEGIN)
         elif phase == GamePhase.CORP_DRAW:
-            effect_manager.trigger_phase_effects("corp_draw")
+            effect_manager.trigger_phase_effects(GamePhase.CORP_DRAW)
             self.corp.draw(1)
         elif phase == GamePhase.CORP_ACTION:
             self.corp.take_action(self)
-            effect_manager.trigger_phase_effects("corp_action")
+            effect_manager.trigger_phase_effects(GamePhase.CORP_ACTION)
         elif phase == GamePhase.CORP_DISCARD:
-            effect_manager.trigger_phase_effects("corp_discard")
+            effect_manager.trigger_phase_effects(GamePhase.CORP_DISCARD)
             self.discard_down_to_max_hand_size(self.corp)
         elif phase == GamePhase.CORP_TURN_END:
-            effect_manager.trigger_phase_effects("corp_turn_end")
+            effect_manager.trigger_phase_effects(GamePhase.CORP_TURN_END)
             print("--- Corporation's Turn Ends ---")
         elif phase == GamePhase.RUNNER_TURN_BEGIN:
-            effect_manager.trigger_phase_effects("runner_turn_begin")
+            effect_manager.trigger_phase_effects(GamePhase.RUNNER_TURN_BEGIN)
             print("\n--- Runner's Turn Begins ---")
         elif phase == GamePhase.RUNNER_ACTION:
             self.runner.take_action(self)
-            effect_manager.trigger_phase_effects("runner_action")
+            effect_manager.trigger_phase_effects(GamePhase.RUNNER_ACTION)
             pass
         elif phase == GamePhase.RUNNER_DISCARD:
-            effect_manager.trigger_phase_effects("runner_discard")
+            effect_manager.trigger_phase_effects(GamePhase.RUNNER_DISCARD)
             self.discard_down_to_max_hand_size(self.runner)
         elif phase == GamePhase.RUNNER_TURN_END:
-            effect_manager.trigger_phase_effects("runner_turn_end")
+            effect_manager.trigger_phase_effects(GamePhase.RUNNER_TURN_END)
             print("--- Runner's Turn Ends ---")
 
     def clear_screen(self):

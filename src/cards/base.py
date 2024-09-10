@@ -1,4 +1,6 @@
 import textwrap
+from termcolor import colored
+from .card_formatter import CardFormatter
 
 
 
@@ -99,62 +101,18 @@ class Card:
         )
 
     def pretty_print(self):
-        border = "+" + "-" * 68 + "+"
-        separator = "|" + "-" * 68 + "|"
 
-        print(border)
-        print(f"| {self.name:<66} |")
-        print(separator)
-
-        # Common attributes for all card types
-        print(f"| Type: {self.type:<60} |")
-        print(f"| Faction: {self.faction:<57} |")
-        print(f"| Side: {self.side:<60} |")
         if self.subtypes:
-            subtypes = ", ".join(self.subtypes)
-            print(f"| Subtypes: {subtypes:<56} |")
-
-        if self.cost is not None:
-            print(f"| Cost: {self.cost:<60} |")
-
-        if self.influence_cost:
-            print(f"| Influence: {self.influence_cost:<55} |")
-
-        print(separator)
-
-        # Card text
-        if self.text:
-            print("| Text: " + " " * 61 + "|")
-            for line in self.format_text(self.text).split("\n"):
-                print(f"| {line:<66} |")
-            print(separator)
-
-        # Type-specific attributes
-        if self.type == "ice":
-            print(f"| Strength: {self.strength:<56} |")
-            if self.num_printed_subroutines:
-                print(f"| Subroutines: {self.num_printed_subroutines:<52} |")
-        elif self.type == "agenda":
-            print(f"| Advancement Requirement: {self.advancement_requirement:<41} |")
-            print(f"| Agenda Points: {self.agenda_points:<51} |")
-        elif self.type in ["asset", "upgrade"]:
-            print(f"| Trash Cost: {self.trash_cost:<54} |")
-        elif self.type == "program":
-            if self.memory_cost:
-                print(f"| Memory Units: {self.memory_cost:<52} |")
-            if self.strength:
-                print(f"| Strength: {self.strength:<56} |")
-        elif self.type == "Hardware":
-            if self.base_link:
-                print(f"| Base Link: {self.base_link:<54} |")
-
-        # Additional attributes
-        if self.is_unique:
-            print(
-                "| ◆ Unique                                                            |"
-            )
-
-        print(border)
+            print(f"   Subtypes: {', '.join(self.subtypes)}")
+        if self.type == "ice" and hasattr(self, "subroutines"):
+            print("   Subroutines:")
+            for subroutine in self.subroutines:
+                print(f"    {colored('⊡', 'white')} {CardFormatter.apply_formatting(subroutine)}")
+        elif self.text:
+            print(f"   Effect: {CardFormatter.apply_formatting(self.text)}")
+        if self.type in ["asset", "upgrade"] and hasattr(self, "trash_cost"):
+            print(f"   Trash Cost: {colored(str(self.trash_cost), 'red')}")
+        print()  # Add a blank line for readability in detailed view
 
     def play(self, player, game):
         if player.credits >= self.cost:
