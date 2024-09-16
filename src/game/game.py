@@ -1,7 +1,13 @@
+from __future__ import annotations
+from typing import List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..players.player import Corp, Runner
+
 import random
 
 import sys
-from typing import List, Optional
+
 import readchar
 import logging
 from termcolor import colored
@@ -12,7 +18,6 @@ from ..cards.card_types import (
 )
 
 from .gamephase import GamePhase
-from ..players.player import Corp, Runner
 from ..effects.effect_manager import EffectManager
 from ..constructs.server import RemoteServer
 
@@ -20,9 +25,9 @@ logger = logging.getLogger(__name__)
 
 
 class Game:
-    def __init__(self, corp, runner, card_registry):
-        self.corp: Corp = corp
-        self.runner: Runner = runner
+    def __init__(self, corp: Corp, runner: Runner, card_registry):
+        self.corp = corp
+        self.runner = runner
         self.card_registry = card_registry
         self.current_player = None
         self.turn_number = 0

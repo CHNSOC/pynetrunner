@@ -1,3 +1,4 @@
+from __future__ import annotations
 import readchar
 from typing import Dict, List
 
@@ -9,7 +10,6 @@ from ..common.gamestate import PlayerType
 from ..cards.deck import Deck
 import src.game.game as Game
 import src.constructs.server as Server
-
 
 
 class Corp(Player):
@@ -76,7 +76,7 @@ class Corp(Player):
     def __str__(self):
         return f"{super().__str__()}, Scored Area: {self.score_area}, Remote servers: {len(self.remote_servers)}"
 
-    def take_action(self, game: Game):
+    def take_action(self, game: Game.Game):
         while self.clicks > 0:
             game.clear_screen()
             print(f"\nCorp's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
@@ -181,7 +181,7 @@ class Corp(Player):
         else:
             return []
 
-    def install_in_server(self, game, card):
+    def install_in_server(self: Corp, game, card: Card):
         valid_servers = self.get_valid_servers(card)
 
         if not valid_servers:
@@ -529,7 +529,7 @@ class Runner(Player):
     def remove_tag(self, count: int = 1):
         self.tags = max(0, self.tags - count)
 
-    def take_action(self, game: Game):
+    def take_action(self, game: Game.Game):
         while self.clicks > 0:
             game.clear_screen()
             print(f"\nRunner's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
