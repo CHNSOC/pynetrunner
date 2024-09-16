@@ -127,19 +127,20 @@ class Corp(Player):
                 installed_cards.append(server.installed_card)
         return installed_cards
 
-    def use_installed_card_ability(self, game:Game):
+    def use_installed_card_ability(self, game: Game):
         installed_cards = self.get_all_installed_cards()
         if not installed_cards:
             print("No installed cards to use.")
             return False
 
-        card = game.select_card_from_list(cards = installed_cards, title = "Activate ability")
+        card = game.select_card_from_list(
+            cards=installed_cards, title="Activate ability"
+        )
 
         if not card:
             return False
-        
+
         return game.effect_manager.handle_click_ability(card, self)
-        
 
     def __str__(self):
         return f"{super().__str__()}, Scored Area: {self.score_area}, Remote servers: {len(self.remote_servers)}"
@@ -789,7 +790,6 @@ class Runner(Player):
     def play_card(self, player, card):
         if isinstance(player, Runner) and card.type == "event":
             print(f"Playing event: {card.name}")
-            self.effect_manager.handle_on_play(card, player)
             self.handle_card_discard(card)
             print(f"{card.name} has been played and moved to the Heap.")
         elif isinstance(player, Corp):

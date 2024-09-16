@@ -30,6 +30,8 @@ class EffectManager:
             player.draw(effect["amount"])
         elif effect_type == "gain_credits":
             player.gain_credits(effect["amount"])
+        elif effect_type == "gain_bad_publicity":
+            player.bad_publicity += 1
         elif effect_type == "run":
             self.game.run(player, effect["server"])
         elif effect_type == "increase_strength":

@@ -7,23 +7,23 @@ import logging
 from termcolor import colored
 
 from ..cards.base import Card
-from ..cards.card_formatter import CardFormatter
 from ..cards.card_types import (
     Agenda,
 )
 
 from .gamephase import GamePhase
 from ..effects.effect_manager import EffectManager
-from ..players.player import Corp, Runner
-import src.players.player as Player
 from ..constructs.server import RemoteServer
+import src.players.player as Player
+from ..players.player import Corp, Runner
 
 logger = logging.getLogger(__name__)
 
+
 class Game:
     def __init__(self, corp, runner, card_registry):
-        self.corp = corp
-        self.runner = runner
+        self.corp: Corp = corp
+        self.runner: Runner = runner
         self.card_registry = card_registry
         self.current_player = None
         self.turn_number = 0
@@ -73,10 +73,12 @@ class Game:
         print("Would you like to mulligan? (y/n)")
         return readchar.readkey().lower() == "y"
 
-    def select_card_from_list(self, cards: List[Card], player: str = "", title: Optional[str] = None) -> Optional[Card]:
+    def select_card_from_list(
+        self, cards: List[Card], player: str = "", title: Optional[str] = None
+    ) -> Optional[Card]:
         detailed = False
         current_card = 0
-        
+
         while True:
             self.clear_screen()
             if title:
@@ -85,16 +87,16 @@ class Game:
 
             for i, card in enumerate(cards):
                 if i == current_card:
-                    print(colored("> ", "yellow", attrs=['bold']), end="")
+                    print(colored("> ", "yellow", attrs=["bold"]), end="")
                 else:
                     print("  ", end="")
 
                 basic_info = f"{i + 1}: {colored(card.name, 'white', attrs=['bold'])} ({card.type})"
 
-                if hasattr(card, 'cost'):
+                if hasattr(card, "cost"):
                     basic_info += f" - Cost: {colored(str(card.cost), 'green')}"
-                
-                if card.type == "ice" and hasattr(card, 'strength'):
+
+                if card.type == "ice" and hasattr(card, "strength"):
                     basic_info += f", Strength: {colored(str(card.strength), 'red')}"
                 elif card.type == "agenda":
                     basic_info += f", Advance Req: {colored(str(card.advancement_requirement), 'yellow')}, Agenda Points: {colored(str(card.agenda_points), 'blue')}"
@@ -105,7 +107,9 @@ class Game:
                     card.pretty_print()  # print_card_details is not highlighted in IDE
 
             print("\nControls:")
-            print("↑/↓: Navigate cards | D: Toggle detailed view | Q: Quit | Enter: Select card")
+            print(
+                "↑/↓: Navigate cards | D: Toggle detailed view | Q: Quit | Enter: Select card"
+            )
 
             key = readchar.readkey()
             if key == readchar.key.UP and current_card > 0:
@@ -118,7 +122,6 @@ class Game:
                 return None
             elif key == readchar.key.ENTER:
                 return cards[current_card]
-        
 
     def display_hand(self, player: Player, phase=None):
         return self.select_card_from_list(player.hand, f"{player.name}'s hand", phase)
@@ -297,7 +300,7 @@ class Game:
             self.corp.rd,
             self.corp.archives,
         ] + self.corp.remote_servers:
-            unrezzed_cards.extend([ice for ice in server.ice if not ice.is_rezzed])
+            # unrezzed_cards.extend([ice for ice in server.ice if not ice.is_rezzed]) # Ice can only be rezzed during a run
             unrezzed_cards.extend(
                 [upgrade for upgrade in server.upgrades if not upgrade.is_rezzed]
             )
@@ -456,7 +459,6 @@ class Game:
         for card, effect in corp_effects:
             effect_manager.handle_effect(effect, card)
 
-        # Handle Runner's active effects
         runner_effects = self.runner.get_active_effects(phase)
         for card, effect in runner_effects:
             effect_manager.handle_effect(effect, card)
