@@ -1,17 +1,27 @@
+from __future__ import annotations
 from ..game.gamephase import GamePhase
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..game.game import Game
+    from ..cards.base import Card
+    from ..players.player import Player, Corp, Runner
 
 
 class EffectManager:
-    def __init__(self, game):
+    def __init__(self, game: Game):
         self.game = game
-        self.global_effects = []
-
-    def add_global_effect(self, effect):
-        self.global_effects.append(effect)
 
     def trigger_phase_effects(self, phase):
         if phase == GamePhase.CORP_TURN_BEGIN:
             self.handle_turn_start_effects(self.game.corp)
+        elif phase == GamePhase.RUNNER_TURN_BEGIN:
+            self.handle_turn_start_effects(self.game.runner)
+        elif phase == GamePhase.CORP_TURN_END:
+            self.game.corp.update_modifiers()
+        elif phase == GamePhase.RUNNER_TURN_END:
+            self.game.runner.update_modifiers()
 
     def trigger_virus_purge_effects(self):
         for card in (
@@ -21,7 +31,12 @@ class EffectManager:
             if "on_virus_purge" in card.effects:
                 self.handle_effect(card.effects["on_virus_purge"], card)
 
-    def apply_effect(self, effect, card, player):
+    def apply_persistent_effects(self, card: Card, player: Player):
+        for effect in card.effects.get("persistent", []):
+            if effect["type"] == "stat_modifier":
+                player.add_modifier(card, effect["stat"], effect["amount"])
+
+    def apply_effect(self, effect, card, player: Player):
         effect_type = effect["type"]
 
         if effect_type == "rez_ice_for_free":
@@ -45,16 +60,22 @@ class EffectManager:
             if card.hosted_counters >= amount:
                 card.hosted_counters -= amount
                 player.gain_credits(amount)
-
         elif effect_type == "place_credits":
             amount = effect.get("amount", 0)
             card.hosted_counters += amount
-
         elif effect_type == "on_transaction_play":
             if player.faction == "Weyland Consortium":
                 player.gain_credits(1)
+        elif effect_type == "search_and_install":
+            self.handle_search_and_install(effect, card, player)
+        elif effect_type == "increase_link_strength":
+            player.add_modifier(card, "link", effect["amount"])
 
-    def handle_on_install_effects(self, card, player):
+    def handle_card_install(self, card, player):
+        self.handle_on_install_effects(card, player)
+        self.apply_persistent_effects(card, player)
+
+    def handle_on_install_effects(self, card: Card, player):
         effects = card.effects.get("on_install", [])
         for effect in effects:
             self.apply_effect(effect, card, player)
@@ -115,7 +136,7 @@ class EffectManager:
         for _ in range(amount):
             pass  # TODO: Implement card exposing logic
 
-    def handle_on_play(self, card, player):
+    def handle_on_play(self, card: Card, player: Player) -> None:
         effects = card.effects.get("on_play", [])
         for effect in effects:
             self.apply_effect(effect, card, player)
@@ -160,16 +181,27 @@ class EffectManager:
             for effect in player.identity.effects[trigger]:
                 self.apply_effect(effect, player.identity, player)
 
-
-class GlobalEffect:
-    def __init__(self, trigger, action):
-        self.trigger = trigger
-        self.action = action
-
-
-class AgendaScoredOrStolenEffect(GlobalEffect):
-    def __init__(self):
-        super().__init__(
-            trigger="agenda_scored_or_stolen",
-            effect={"type": "net_damage", "amount": 1},
-        )
+    def handle_search_and_install(self, effect, card: Card, player: Corp | Runner):
+        card_name = card.name
+        if (
+            self.game.user_input(
+                f"Do you want to search for another copy of {card_name}? (y/n): ",
+                ["y", "n"],
+            )
+            == "y"
+        ):
+            found_card = player.search_deck(card_name)
+            if found_card and player.can_pay(found_card.cost):
+                if (
+                    self.game.user_input(
+                        f"Install {card_name} for {found_card.cost} credits? (y/n): ",
+                        ["y", "n"],
+                    )
+                    == "y"
+                ):
+                    player.spend_credits(found_card.cost)
+                    player.deck.cards.remove(found_card)
+                    player.install_card(self.game, found_card, prepaid=True)
+                    player.shuffle_deck()
+            else:
+                print(f"No copy of {card_name} found or not enough credits to install.")

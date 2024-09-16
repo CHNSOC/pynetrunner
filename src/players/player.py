@@ -1,15 +1,18 @@
 from __future__ import annotations
 import readchar
-from typing import Dict, List
+from typing import Dict, List, TYPE_CHECKING
 
 
 from .base_player import Player
-from ..cards.base import Card
 
 from ..common.gamestate import PlayerType
 from ..cards.deck import Deck
-import src.game.game as Game
 import src.constructs.server as Server
+
+
+if TYPE_CHECKING:
+    from ..game.game import Game
+    from ..cards.base import Card
 
 
 class Corp(Player):
@@ -121,7 +124,7 @@ class Corp(Player):
         self.remote_servers.append(new_server)
         return new_server
 
-    def install_card(self, game, card):
+    def install_card(self, game: Game, card: Card, prepaid: bool = False) -> bool:
         if card.type == "ice":
             self.install_ice(game, card)
         elif card.type in ["asset", "upgrade", "agenda"]:
@@ -132,6 +135,7 @@ class Corp(Player):
             return False
 
         self.hand.remove(card)
+        game.effect_manager.handle_card_install(card, self)
         self.clicks -= 1
         return True
 
@@ -266,8 +270,7 @@ class Corp(Player):
             game.effect_manager.handle_on_play(card, self)
 
             # Move the card to Archives
-            self.archives.handle_card_discard(card)
-            self.hand.remove(card)
+            self.handle_card_discard(card)
             self.clicks -= 1
 
             print(f"{card.name} has been played and moved to Archives.")
@@ -475,6 +478,7 @@ class Corp(Player):
         pass
 
     def handle_card_discard(self, card: Card):
+        self.remove_modifiers(card)
         self.archives.handle_card_discard(card)
         self.hand.remove(card)
 
@@ -504,17 +508,45 @@ class Corp(Player):
 
 class Runner(Player):
     def __init__(self, deck: Deck, identity: Card):
-        super().__init__(deck, identity)
+        self._deck: Deck = deck
+        self._hand = []
         self.rig: Dict[str, List[Card]] = {
             "program": [],
             "hardware": [],
             "resource": [],
         }
-        self.heap: List[Card] = []
+        self.heap: List[Card] = []  # Trash pile
+        self.grip: List[Card] = self._hand  # Hand
+        self.stack: List[Card] = deck.cards  # Draw pile
         self.faction = PlayerType.RUNNER
         self.memory_units = 4
-        self.link_strength = 0
+        self.base_link = 0
         self.tags = 0
+        super().__init__(deck, identity)
+
+    @property
+    def deck(self):
+        return self._deck
+
+    @deck.setter
+    def deck(self, value):
+        self._deck = value
+        self.stack = self._deck.cards
+
+    @property
+    def hand(self):
+        return self._hand
+
+    @hand.setter
+    def hand(self, value):
+        self._hand = value
+        self.grip = self._hand
+
+    @property
+    def link(self):
+        return self.base_link + sum(
+            mod.amount for mod in self.stat_modifiers if mod.stat == "link"
+        )
 
     def get_all_installed_cards(self):
         return self.rig["program"] + self.rig["hardware"] + self.rig["resource"]
@@ -556,8 +588,7 @@ class Runner(Player):
                 if card and self.play_card(game, card):
                     self.clicks -= 1
             elif key == "i" and self.clicks > 0:
-                card = game.select_card_from_hand(self)
-                if card and self.install_card(game, card):
+                if card and self.install_cards(game):
                     self.clicks -= 1
             elif key == "e":
                 self.examine_servers(game)
@@ -581,7 +612,7 @@ class Runner(Player):
             if self.can_pay(cost):
                 self.pay(cost)
 
-    def install_cards(self, game):
+    def install_cards(self, game):  # TODO: Add this to menu
         installable_cards = [
             card
             for card in self.hand
@@ -615,53 +646,50 @@ class Runner(Player):
         except ValueError:
             print("Invalid input. Please enter a number.")
 
-    def install_card(self, card):
-        installable_cards = [
-            card
-            for card in self.hand
-            if card.type in ["program", "hardware", "resource"]
-        ]
-        if not installable_cards:
-            print("No cards to install.")
-            return
-
-        print("Cards you can install:")
-        for i, card in enumerate(installable_cards):
-            print(f"{i+1}: {card.name} (Cost: {card.cost}, Type: {card.type})")
-
-        choice = input("Choose a card to install (or 'c' to cancel): ")
-        if choice == "c":
-            return
-
-        try:
-            card_index = int(choice) - 1
-            if 0 <= card_index < len(installable_cards):
-                card = installable_cards[card_index]
-                if self.credits >= card.cost:
-                    if (
-                        card.type == "program"
-                        and self.get_available_mu() < card.memory_cost
-                    ):
-                        print("Not enough memory units to install this program.")
-                        return
-                    self.credits -= card.cost
-                    self.install(card)
-                    self.hand.remove(card)
-                    print(f"Installed {card.name}.")
-                else:
-                    print("Not enough credits to install this card.")
-            else:
-                print("Invalid card choice.")
-        except ValueError:
-            print("Invalid input. Please enter a number.")
-
-    def install(self, card):
-        if card.type.lower() in self.rig:
-            self.rig[card.type.lower()].append(card)
-            if card.type == "program":
-                self.memory_units -= card.memory_cost
-        else:
+    def install_card(self, game: Game, card: Card, prepaid: bool = False) -> bool:
+        if card.type not in ["program", "hardware", "resource"]:
             print(f"Cannot install card of type {card.type}")
+            return False
+
+        if not prepaid and self.credits < card.cost:
+            print("Not enough credits to install this card.")
+            return False
+
+        if card.type == "program":
+            while self.get_available_mu() < card.memory_cost:
+                print(
+                    "Not enough memory units. Choose a program to trash or cancel installation:"
+                )
+                programs = self.rig["program"]
+                for i, prog in enumerate(programs):
+                    print(f"{i+1}. {prog.name} (MU: {prog.memory_cost})")
+                print("0. Cancel installation")
+
+                choice = input("Enter your choice: ")
+                if choice == "0":
+                    return False
+                try:
+                    index = int(choice) - 1
+                    if 0 <= index < len(programs):
+                        trashed_program = programs.pop(index)
+                        print(f"Trashed {trashed_program.name}")
+                    else:
+                        print("Invalid choice. Try again.")
+                except ValueError:
+                    print("Invalid input. Try again.")
+
+        if card.type == "hardware" and card.subtypes and "console" in card.subtypes:
+            if any(c for c in self.rig["hardware"] if "console" in c.subtypes):
+                print("You can only have one console installed at a time.")
+                return False
+
+        self.credits -= card.cost
+        self.rig[card.type.lower()].append(card)
+        card.location = self.rig[card.type.lower()]
+        self.hand.remove(card)
+        game.effect_manager.handle_card_install(card, self)
+        print(f"Installed {card.name}.")
+        return True
 
     def get_available_mu(self):
         used_mu = sum(card.memory_cost for card in self.rig["program"])
@@ -689,44 +717,33 @@ class Runner(Player):
         except ValueError:
             print("Invalid input. Please enter a number.")
 
-    def play_events(self, game):
-        events = [card for card in self.hand if card.type == "event"]
-        if not events:
-            print("No events to play.")
-            return
-
-        print("Events you can play:")
-        for i, card in enumerate(events):
-            print(f"{i+1}: {card.name} (Cost: {card.cost})")
-
-        choice = input("Choose an event to play (or 'c' to cancel): ")
-        if choice == "c":
-            return
-
-        try:
-            event_index = int(choice) - 1
-            if 0 <= event_index < len(events):
-                event = events[event_index]
-                if self.credits >= event.cost:
-                    self.credits -= event.cost
-                    game.play_card(self, event)
-                    self.handle_card_discard(event)
-                    print(f"Played {event.name}.")
-                else:
-                    print("Not enough credits to play this event.")
-            else:
-                print("Invalid event choice.")
-        except ValueError:
-            print("Invalid input. Please enter a number.")
-
-    def play_card(self, player, card):
-        if isinstance(player, Runner) and card.type == "event":
+    def play_card(self, game: Game, card: Card):
+        if card.type == "event":
             print(f"Playing event: {card.name}")
-            self.handle_card_discard(card)
-            print(f"{card.name} has been played and moved to the Heap.")
-        elif isinstance(player, Corp):
-            # Existing Corp card play logic
-            pass
+            if self.play_event(game, card):
+                self.handle_card_discard(card)
+                print(f"{card.name} has been played and moved to the Heap.")
+        elif card.type in ["program", "hardware", "resource"]:
+            if self.install_card(game, card):
+                print(f"{card.name} has been installed.")
+        else:
+            print(f"Cannot play card of type {card.type}")
+
+    def play_event(self, game: Game, card: Card) -> bool:
+        if self.credits >= card.cost:
+            self.credits -= card.cost
+            print(f"Playing event: {card.name}")
+
+            # Trigger the card's effects
+            game.effect_manager.handle_on_play(card, self)
+
+            self.clicks -= 1
+
+            print(f"{card.name} has been played and moved to Archives.")
+            return True
+        else:
+            print(f"Not enough credits to play {card.name}.")
+            return False
 
     def examine_servers(self, game):
         servers = [
@@ -757,6 +774,7 @@ class Runner(Player):
 
     def handle_card_discard(self, card: Card):
         self.hand.remove(card)
+        self.remove_modifiers(card)
         self.heap.append(card)
 
     def get_installed_resources(self):

@@ -32,8 +32,7 @@ class Game:
         self.current_player = None
         self.turn_number = 0
         self.current_phase = None
-        self.effect_manager = EffectManager(self)
-        self.setup_identities()
+        self.effect_manager: EffectManager = EffectManager(self)
 
     def quit_game(self):
         print("Thanks for playing!")
@@ -55,17 +54,12 @@ class Game:
             self.runner.mulligan()
             logger.info(f"Runner {self.runner.name} mulliganed")
 
-    def add_global_effect(self, effect):
-        self.effect_manager.add_global_effect(effect)
-        logger.info(f"Added global effect: {effect}")
-
     def setup_identities(self):
         self.setup_identity(self.corp)
         self.setup_identity(self.runner)
 
     def setup_identity(self, player: Corp | Runner):
-        if player.identity:
-            self.effect_manager.add_global_effect(player.identity)
+        pass  # TODO: Implement identity setup
 
     def corp_mulligan_decision(self):
         self.display_hand(self.corp, "Mulligan Phase")
@@ -142,24 +136,6 @@ class Game:
             print("Runner's installed resources:")
             for i, resource in enumerate(resources):
                 print(f"{i+1}: {resource.name}")
-
-    def play_card(self, player: Corp | Runner, card: Card):
-        # This handles playing a card from the player's hand
-
-        if player == self.corp:
-            if card.type == "operation":
-                self.effect_manager.handle_on_play(card, player)
-                self.effect_manager.trigger_global_effects(
-                    "operation_played", player=player, card=card
-                )
-            elif (
-                card.type == "ice"
-                or card.type == "asset"
-                or card.type == "upgrade"
-                or card.type == "agenda"
-            ):
-                player.install_card(self, card)
-        player.handle_card_discard(card)
 
     def run(self, runner, server):
         print(f"{runner.name} initiates a run on {server}")
@@ -500,3 +476,11 @@ class Game:
         # os.system("cls" if os.name == "nt" else "clear")
         print("\n\n\n")
         pass
+
+    def user_input(self, prompt: str = "", accept_responses: List[str] = []) -> str:
+        print(prompt)
+        while True:
+            response = readchar.readkey().lower()
+            if accept_responses and response in accept_responses:
+                return response
+            print("Invalid response. Please try again.")
