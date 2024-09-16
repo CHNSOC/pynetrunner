@@ -12,10 +12,9 @@ from ..cards.card_types import (
 )
 
 from .gamephase import GamePhase
+from ..players.player import Corp, Runner
 from ..effects.effect_manager import EffectManager
 from ..constructs.server import RemoteServer
-import src.players.player as Player
-from ..players.player import Corp, Runner
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +58,7 @@ class Game:
         self.setup_identity(self.corp)
         self.setup_identity(self.runner)
 
-    def setup_identity(self, player: Player):
+    def setup_identity(self, player: Corp | Runner):
         if player.identity:
             self.effect_manager.add_global_effect(player.identity)
 
@@ -123,7 +122,7 @@ class Game:
             elif key == readchar.key.ENTER:
                 return cards[current_card]
 
-    def display_hand(self, player: Player, phase=None):
+    def display_hand(self, player: Corp | Runner, phase=None):
         return self.select_card_from_list(player.hand, f"{player.name}'s hand", phase)
 
     def select_card_from_hand(self, player):
@@ -139,7 +138,7 @@ class Game:
             for i, resource in enumerate(resources):
                 print(f"{i+1}: {resource.name}")
 
-    def play_card(self, player: Player.Corp | Player.Runner, card: Card):
+    def play_card(self, player: Corp | Runner, card: Card):
         # This handles playing a card from the player's hand
 
         if player == self.corp:
@@ -361,7 +360,7 @@ class Game:
         self.runner_score = sum(agenda.points for agenda in self.runner.score_area)
         self.check_win_condition()
 
-    def discard_down_to_max_hand_size(self, player: Player):
+    def discard_down_to_max_hand_size(self, player: Corp | Runner):
         while len(player.hand) > player.get_max_hand_size():
             max_hand_size = player.get_max_hand_size()
             user_selection = self.display_hand(
