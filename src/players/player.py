@@ -90,7 +90,6 @@ class Corp(Player):
             print("s: Trigger a card ability")
             print("e: Examine servers")
             print("z: Purge virus counters")
-            print("q: End turn")
             if game.debug:
                 print("[: Debug: Add card to hand")
 
@@ -117,7 +116,7 @@ class Corp(Player):
                 if self.purge_virus_counters(game):
                     self.clicks -= 3
             elif key == "[" and game.debug:
-                game.debug_add_card_to_hand(self)
+                game.debug_menu(self)
             else:
                 print("Invalid action. Try again.")
 
@@ -579,7 +578,6 @@ class Runner(Player):
             print("t: Remove a tag")
             if game.debug:
                 print("[: Debug: Add card to hand")
-            print("q: End turn")
 
             key = readchar.readkey().lower()
 
@@ -608,9 +606,7 @@ class Runner(Player):
                 self.remove_tag()
                 self.clicks -= 1
             elif key == "[" and game.debug:
-                game.debug_add_card_to_hand(self)
-            elif key == "q":
-                break
+                game.debug_menu(self)
             else:
                 print("Invalid action. Try again.")
 

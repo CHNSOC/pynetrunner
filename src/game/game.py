@@ -545,3 +545,96 @@ class Game:
                     if search_term.lower() in card.name.lower()
                 ]
                 selected_index = 0
+
+    def debug_menu(self, player):
+        options = ["Pick a card", "Modify resources", "Exit debug menu"]
+        selected_index = 0
+
+        while True:
+            self.clear_screen()
+            print("=== Debug Menu ===")
+            for i, option in enumerate(options):
+                prefix = ">" if i == selected_index else " "
+                print(f"{prefix} {i+1}. {option}")
+
+            print("\nControls:")
+            print("↑/↓ or number keys: Select | Enter: Confirm | Q: Quit")
+
+            key = readchar.readkey()
+
+            if key == readchar.key.UP and selected_index > 0:
+                selected_index -= 1
+            elif key == readchar.key.DOWN and selected_index < len(options) - 1:
+                selected_index += 1
+            elif key.isdigit():
+                new_index = int(key) - 1
+                if 0 <= new_index < len(options):
+                    selected_index = new_index
+            elif key == readchar.key.ENTER:
+                if selected_index == 0:
+                    self.debug_add_card_to_hand(player)
+                elif selected_index == 1:
+                    self.debug_modify_resources(player)
+                elif selected_index == 2:
+                    break
+            elif key.lower() == "q":
+                break
+
+    def debug_modify_resources(self, player):
+        options = [
+            "Modify clicks",
+            "Modify credits",
+            "Modify memory units (MU)",
+            "Modify bad publicity (Corp only)",
+            "Modify tags (Runner only)",
+            "Back to main debug menu",
+        ]
+        selected_index = 0
+
+        while True:
+            self.clear_screen()
+            print("=== Debug: Modify Resources ===")
+            for i, option in enumerate(options):
+                prefix = ">" if i == selected_index else " "
+                print(f"{prefix} {i+1}. {option}")
+
+            print("\nControls:")
+            print("↑/↓ or number keys: Select | Enter: Confirm | Q: Quit")
+
+            key = readchar.readkey()
+
+            if key == readchar.key.UP and selected_index > 0:
+                selected_index -= 1
+            elif key == readchar.key.DOWN and selected_index < len(options) - 1:
+                selected_index += 1
+            elif key.isdigit():
+                new_index = int(key) - 1
+                if 0 <= new_index < len(options):
+                    selected_index = new_index
+            elif key == readchar.key.ENTER:
+                if selected_index == 0:
+                    self.debug_modify_resource(player, "clicks")
+                elif selected_index == 1:
+                    self.debug_modify_resource(player, "credits")
+                elif selected_index == 2:
+                    self.debug_modify_resource(player, "memory_units")
+                elif selected_index == 3 and isinstance(player, Corp):
+                    self.debug_modify_resource(player, "bad_publicity")
+                elif selected_index == 4 and isinstance(player, Runner):
+                    self.debug_modify_resource(player, "tags")
+                elif selected_index == 5:
+                    break
+            elif key.lower() == "q":
+                break
+
+    def debug_modify_resource(self, player, resource):
+        current_value = getattr(player, resource, 0)
+        print(f"\nCurrent {resource}: {current_value}")
+        new_value = input(f"Enter new value for {resource}: ")
+        try:
+            new_value = int(new_value)
+            setattr(player, resource, new_value)
+            print(f"{resource.capitalize()} updated to {new_value}")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+        input("Press Enter to continue...")

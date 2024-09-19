@@ -2,6 +2,7 @@ from __future__ import annotations
 from ..game.gamephase import GamePhase
 
 from typing import TYPE_CHECKING
+import readchar
 
 if TYPE_CHECKING:
     from ..game.game import Game
@@ -80,23 +81,35 @@ class EffectManager:
         for effect in effects:
             self.apply_effect(effect, card, player)
 
+    def describe_effect(self, effect):
+        if effect["type"] == "gain_credits":
+            return f"Gain {effect['amount']} credits"
+        elif effect["type"] == "expose_card":
+            return (
+                f"Expose {effect['amount']} card{'s' if effect['amount'] > 1 else ''}"
+            )
+        return "Unknown effect"
+
     def handle_player_choice(self, effect, card, player):
         choices = effect.get("choices", [])
-        print(f"Choose an effect for {card.name}:")
-        for i, choice in enumerate(choices, 1):
-            print(f"{i}. {self.describe_effect(choice)}")
+        current_choice = 0
 
         while True:
-            try:
-                choice_index = int(input("Enter your choice (number): ")) - 1
-                if 0 <= choice_index < len(choices):
-                    chosen_effect = choices[choice_index]
-                    self.apply_effect(chosen_effect, card, player)
-                    break
-                else:
-                    print("Invalid choice. Please try again.")
-            except ValueError:
-                print("Please enter a number.")
+            self.game.clear_screen()
+            print(f"Choose an effect for {card.name}:")
+            for i, choice in enumerate(choices):
+                prefix = ">" if i == current_choice else " "
+                print(f"{prefix} {self.describe_effect(choice)}")
+
+            key = readchar.readkey()
+            if key == readchar.key.UP and current_choice > 0:
+                current_choice -= 1
+            elif key == readchar.key.DOWN and current_choice < len(choices) - 1:
+                current_choice += 1
+            elif key == readchar.key.ENTER:
+                chosen_effect = choices[current_choice]
+                self.apply_effect(chosen_effect, card, player)
+                break
 
     def handle_rez_ice_for_free(self, card, corp):
         unrezzed_ice = corp.get_all_unrezzed_ice()
