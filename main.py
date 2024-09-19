@@ -49,4 +49,4 @@ def setup_players():
 
 if __name__ == "__main__":
     game = setup_players()
-    game.play_game()
+    game.play_game(debug=True)

@@ -79,7 +79,7 @@ class Corp(Player):
     def __str__(self):
         return f"{super().__str__()}, Scored Area: {self.score_area}, Remote servers: {len(self.remote_servers)}"
 
-    def take_action(self, game: Game.Game):
+    def take_action(self, game: Game):
         while self.clicks > 0:
             game.clear_screen()
             print(f"\nCorp's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
@@ -91,6 +91,8 @@ class Corp(Player):
             print("e: Examine servers")
             print("z: Purge virus counters")
             print("q: End turn")
+            if game.debug:
+                print("[: Debug: Add card to hand")
 
             key = readchar.readkey().lower()
 
@@ -114,6 +116,8 @@ class Corp(Player):
             elif key == "z" and self.clicks >= 3:
                 if self.purge_virus_counters(game):
                     self.clicks -= 3
+            elif key == "[" and game.debug:
+                game.debug_add_card_to_hand(self)
             else:
                 print("Invalid action. Try again.")
 
@@ -561,7 +565,7 @@ class Runner(Player):
     def remove_tag(self, count: int = 1):
         self.tags = max(0, self.tags - count)
 
-    def take_action(self, game: Game.Game):
+    def take_action(self, game: Game):
         while self.clicks > 0:
             game.clear_screen()
             print(f"\nRunner's turn (Clicks: {self.clicks}, Credits: {self.credits}):")
@@ -573,6 +577,8 @@ class Runner(Player):
             print("r: Make a run")
             print("u: Use an installed card ability")
             print("t: Remove a tag")
+            if game.debug:
+                print("[: Debug: Add card to hand")
             print("q: End turn")
 
             key = readchar.readkey().lower()
@@ -601,6 +607,8 @@ class Runner(Player):
             elif key == "t" and self.clicks > 0 and self.tags > 0:
                 self.remove_tag()
                 self.clicks -= 1
+            elif key == "[" and game.debug:
+                game.debug_add_card_to_hand(self)
             elif key == "q":
                 break
             else:
@@ -683,10 +691,14 @@ class Runner(Player):
                 print("You can only have one console installed at a time.")
                 return False
 
-        self.credits -= card.cost
+        if not prepaid:
+            self.credits -= card.cost
         self.rig[card.type.lower()].append(card)
         card.location = self.rig[card.type.lower()]
-        self.hand.remove(card)
+        if (
+            card in self.hand
+        ):  # Case if card was installed from hand (Certain card effects allow cards to be installed from other locations, e.g. Rabbit Hole)
+            self.hand.remove(card)
         game.effect_manager.handle_card_install(card, self)
         print(f"Installed {card.name}.")
         return True

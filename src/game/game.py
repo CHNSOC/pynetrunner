@@ -33,16 +33,20 @@ class Game:
         self.turn_number = 0
         self.current_phase = None
         self.effect_manager: EffectManager = EffectManager(self)
+        self.debug = False
 
     def quit_game(self):
         print("Thanks for playing!")
         sys.exit(0)
 
-    def setup_game(self):
+    def setup_game(self, debug=False):
         self.corp.draw(5)
         self.runner.draw(5)
 
         self.setup_identities()
+
+        if debug:
+            self.debug = True
 
         # Corp mulligan
         if not self.corp.has_mulliganed and self.corp_mulligan_decision():
@@ -365,8 +369,8 @@ class Game:
             return True
         return False
 
-    def play_game(self):
-        self.setup_game()
+    def play_game(self, debug=False):
+        self.setup_game(debug)
         while not self.check_win_condition():
             self.turn_number += 1
             print(f"\n--- Turn {self.turn_number} ---")
@@ -484,3 +488,60 @@ class Game:
             if accept_responses and response in accept_responses:
                 return response
             print("Invalid response. Please try again.")
+
+    def debug_add_card_to_hand(self, player: Corp | Runner):
+        search_term = ""
+        filtered_cards = player.deck.cards
+        selected_index = 0
+
+        while True:
+            self.clear_screen()
+            print("=== Debug: Add Card to Hand ===")
+            print(f"Search: {search_term}")
+            print("\nMatching cards:")
+
+            for i, card in enumerate(filtered_cards):
+                prefix = ">" if i == selected_index else " "
+                print(f"{prefix} {i+1}. {card.name}")
+
+            print("\nControls:")
+            print(
+                "Type to search | ↑/↓ or number keys: Select | Enter: Confirm | Q: Quit"
+            )
+
+            key = readchar.readkey()
+
+            if key == readchar.key.UP and selected_index > 0:
+                selected_index -= 1
+            elif key == readchar.key.DOWN and selected_index < len(filtered_cards) - 1:
+                selected_index += 1
+            elif key.isdigit():
+                new_index = int(key) - 1
+                if 0 <= new_index < len(filtered_cards):
+                    selected_index = new_index
+            elif key == readchar.key.ENTER:
+                selected_card = filtered_cards[selected_index]
+                player.deck.cards.remove(selected_card)
+                player.hand.append(selected_card)
+                print(f"\nAdded {selected_card.name} to hand.")
+                input("Press Enter to continue...")
+                break
+            elif key == readchar.key.BACKSPACE:
+                if search_term:
+                    search_term = search_term[:-1]
+                    filtered_cards = [
+                        card
+                        for card in player.deck.cards
+                        if search_term.lower() in card.name.lower()
+                    ]
+                    selected_index = 0
+            elif key.lower() == "q":
+                break
+            else:
+                search_term += key
+                filtered_cards = [
+                    card
+                    for card in player.deck.cards
+                    if search_term.lower() in card.name.lower()
+                ]
+                selected_index = 0
