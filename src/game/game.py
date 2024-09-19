@@ -4,8 +4,6 @@ from typing import List, Optional, TYPE_CHECKING
 if TYPE_CHECKING:
     from ..players.player import Corp, Runner
 
-import random
-
 import sys
 
 import readchar
@@ -19,6 +17,7 @@ from ..cards.card_types import (
 
 from .gamephase import GamePhase
 from ..effects.effect_manager import EffectManager
+from .run_manager import RunManager
 from ..constructs.server import RemoteServer
 
 logger = logging.getLogger(__name__)
@@ -33,6 +32,7 @@ class Game:
         self.turn_number = 0
         self.current_phase = None
         self.effect_manager: EffectManager = EffectManager(self)
+        self.run_manager: RunManager = RunManager(self)
         self.debug = False
 
     def quit_game(self):
@@ -142,31 +142,7 @@ class Game:
                 print(f"{i+1}: {resource.name}")
 
     def run(self, runner, server):
-        print(f"{runner.name} initiates a run on {server}")
-
-        # 1. Initiation Phase
-        self.current_phase = GamePhase.RUN_INITIATION
-        runner.gain_credits(self.corp.bad_publicity)
-
-        ice_list = self.get_ice_protecting_server(server)
-
-        # 2. Confrontation Phase
-        for ice in ice_list:
-            self.current_phase = GamePhase.RUN_APPROACH_ICE
-            if runner.decide_to_continue():
-                self.current_phase = GamePhase.RUN_ENCOUNTER_ICE
-                runner.encounter_ice(ice)
-            else:
-                print(f"{runner.name} jacks out.")
-                return
-
-        # 3. Access Phase
-        self.current_phase = GamePhase.RUN_SUCCESS
-        accessed_cards = self.access_server(server)
-        for card in accessed_cards:
-            self.handle_accessed_card(card)
-
-        print(f"Run on {server} successful.")
+        self.run_manager.initiate_run(runner, server)
 
     def get_ice_protecting_server(self, server):
         if server == "HQ":
@@ -180,13 +156,17 @@ class Game:
 
     def access_server(self, server):
         if server == "HQ":
-            return [random.choice(self.corp.hand)]
+            accessed_cards = self.access_hq()
         elif server == "R&D":
-            return [self.corp.deck.cards[-1]]
+            accessed_cards = self.access_rd()
         elif server == "Archives":
-            return self.corp.archives.cards
+            accessed_cards = self.access_archives()
         else:
-            return self.corp.remote_servers[int(server.split()[-1]) - 1].cards
+            server_index = int(server.split()[-1]) - 1
+            accessed_cards = self.access_remote_server(server_index)
+
+        for card in accessed_cards:
+            self.handle_accessed_card(card)
 
     def handle_accessed_card(self, card):
         print(f"Accessed: {card.name}")
@@ -223,23 +203,6 @@ class Game:
             elif action == "end_run":
                 return True  # End the run
         return False  # Continue the run
-
-    def runner_jacks_out(self) -> bool:
-        return input("Do you want to jack out? (y/n): ").lower() == "y"
-
-    def run_ends_due_to_ice(self) -> bool:
-        # For now, let's assume the run ends if the Runner can't break all subroutines
-        return not self.runner_breaks_all_subroutines()
-
-    def runner_breaks_all_subroutines(self) -> bool:
-        # Simplified ice breaking mechanic
-        print(f"Encountered ICE: {self.current_ice.name}")
-        print(f"Strength: {self.current_ice.strength}")
-        print("Subroutines:")
-        for subroutine in self.current_ice.subroutines:
-            print(f"- {subroutine}")
-
-        return input("Can you break all subroutines? (y/n): ").lower() == "y"
 
     def purge_all_virus_counters(self):
         # Remove virus counters from all installed cards
@@ -296,18 +259,6 @@ class Game:
             ):
                 unrezzed_cards.append(server.installed_card)
         return unrezzed_cards
-
-    def access_hq(self):
-        return [random.choice(self.corp.hq.cards)]
-
-    def access_rd(self):
-        return self.corp.rd.cards[-1:]
-
-    def access_archives(self):
-        return self.corp.archives.cards
-
-    def access_remote_server(self, server_index):
-        return self.corp.remote_servers[server_index].cards
 
     def calculate_score(self, score_area):
         if not score_area:
@@ -485,9 +436,13 @@ class Game:
         print(prompt)
         while True:
             response = readchar.readkey().lower()
-            if accept_responses and response in accept_responses:
+            if accept_responses:
+                if response in accept_responses:
+                    return response
+                else:
+                    print("Invalid response. Please try again.")
+            else:
                 return response
-            print("Invalid response. Please try again.")
 
     def debug_add_card_to_hand(self, player: Corp | Runner):
         search_term = ""

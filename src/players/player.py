@@ -403,7 +403,7 @@ class Corp(Player):
         self.bad_publicity += amount
         print(f"{self.name} gained {amount} bad publicity.")
 
-    def trash_resource(self, game):
+    def trash_runner_resource(self, game: Game):
         if game.runner.tags == 0:
             print("The Runner is not tagged. Cannot trash a resource.")
             return False
@@ -430,7 +430,7 @@ class Corp(Player):
             if 0 <= index < len(resources):
                 resource_to_trash = resources[index]
                 self.credits -= 2
-                game.runner.trash_resource(resource_to_trash)
+                game.runner.trash_installed_resource(resource_to_trash)
                 print(f"Trashed {resource_to_trash.name}. Corp spent 2 credits.")
                 return True
             else:
@@ -597,8 +597,7 @@ class Runner(Player):
             elif key == "e":
                 self.examine_servers(game)
             elif key == "r" and self.clicks > 0:
-                if self.make_run(game):
-                    self.clicks -= 1
+                self.initiate_run(game)
             elif key == "u" and self.clicks > 0:
                 if self.use_installed_card_ability(game):
                     self.clicks -= 1
@@ -703,7 +702,7 @@ class Runner(Player):
         used_mu = sum(card.memory_cost for card in self.rig["program"])
         return self.memory_units - used_mu
 
-    def initiate_run(self, game):
+    def initiate_run(self, game: Game):
         servers = ["HQ", "R&D", "Archives"] + [
             f"Remote {i+1}" for i in range(len(game.corp.remote_servers))
         ]
@@ -788,7 +787,7 @@ class Runner(Player):
     def get_installed_resources(self):
         return self.rig["resource"]
 
-    def trash_resource(self, resource: Card):
+    def trash_installed_resource(self, resource: Card):
         self.rig["resource"].remove(resource)
         self.heap.append(resource)
         print(f"{self.name}'s resource {resource.name} was trashed.")
