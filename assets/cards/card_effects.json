@@ -351,7 +351,8 @@
     "effects": {
       "persistent": [
         {
-          "type": "increase_link_strength",
+          "type": "stat_modifier",
+          "stat": "link",
           "amount": 1
         }
       ],

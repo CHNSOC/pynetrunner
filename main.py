@@ -4,6 +4,15 @@ from src.players.player import Corp, Runner
 from src.players.player import Deck
 from src.cards.card_registry import CardRegistry
 
+import logging
+
+def setup_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        filename='netrunner.log',
+        filemode='w'
+    )
 
 def create_deck_from_card_ids(registry, card_ids):
     return Deck([registry.get_card(card_id) for card_id in card_ids])
@@ -48,5 +57,6 @@ def setup_players():
 
 
 if __name__ == "__main__":
+    setup_logging()
     game = setup_players()
-    game.play_game()
+    game.play_game(debug=True)

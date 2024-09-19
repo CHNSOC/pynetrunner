@@ -149,11 +149,12 @@ class Archives(Server):
         self.face_up_cards = []
         self.face_down_cards = []
 
-    def handle_card_discard(self, card, face_up=True):
+    def handle_card_discard(self, card: Card, face_up=True):
         if face_up:
             self.face_up_cards.append(card)
         else:
             self.face_down_cards.append(card)
+        card.location = self
 
     def _print_server_specific_info(self, is_corp):
         total_cards = len(self.face_up_cards) + len(self.face_down_cards)

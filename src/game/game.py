@@ -1,7 +1,11 @@
-import random
+from __future__ import annotations
+from typing import List, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..players.player import Corp, Runner
 
 import sys
-from typing import List, Optional
+
 import readchar
 import logging
 from termcolor import colored
@@ -13,33 +17,36 @@ from ..cards.card_types import (
 
 from .gamephase import GamePhase
 from ..effects.effect_manager import EffectManager
+from .run_manager import RunManager
 from ..constructs.server import RemoteServer
-import src.players.player as Player
-from ..players.player import Corp, Runner
 
 logger = logging.getLogger(__name__)
 
 
 class Game:
-    def __init__(self, corp, runner, card_registry):
-        self.corp: Corp = corp
-        self.runner: Runner = runner
+    def __init__(self, corp: Corp, runner: Runner, card_registry):
+        self.corp = corp
+        self.runner = runner
         self.card_registry = card_registry
         self.current_player = None
         self.turn_number = 0
         self.current_phase = None
-        self.effect_manager = EffectManager(self)
-        self.setup_identities()
+        self.effect_manager: EffectManager = EffectManager(self)
+        self.run_manager: RunManager = RunManager(self)
+        self.debug = False
 
     def quit_game(self):
         print("Thanks for playing!")
         sys.exit(0)
 
-    def setup_game(self):
+    def setup_game(self, debug=False):
         self.corp.draw(5)
         self.runner.draw(5)
 
         self.setup_identities()
+
+        if debug:
+            self.debug = True
 
         # Corp mulligan
         if not self.corp.has_mulliganed and self.corp_mulligan_decision():
@@ -51,17 +58,12 @@ class Game:
             self.runner.mulligan()
             logger.info(f"Runner {self.runner.name} mulliganed")
 
-    def add_global_effect(self, effect):
-        self.effect_manager.add_global_effect(effect)
-        logger.info(f"Added global effect: {effect}")
-
     def setup_identities(self):
         self.setup_identity(self.corp)
         self.setup_identity(self.runner)
 
-    def setup_identity(self, player: Player):
-        if player.identity:
-            self.effect_manager.add_global_effect(player.identity)
+    def setup_identity(self, player: Corp | Runner):
+        pass  # TODO: Implement identity setup
 
     def corp_mulligan_decision(self):
         self.display_hand(self.corp, "Mulligan Phase")
@@ -123,7 +125,7 @@ class Game:
             elif key == readchar.key.ENTER:
                 return cards[current_card]
 
-    def display_hand(self, player: Player, phase=None):
+    def display_hand(self, player: Corp | Runner, phase=None):
         return self.select_card_from_list(player.hand, f"{player.name}'s hand", phase)
 
     def select_card_from_hand(self, player):
@@ -139,50 +141,8 @@ class Game:
             for i, resource in enumerate(resources):
                 print(f"{i+1}: {resource.name}")
 
-    def play_card(self, player: Player.Corp | Player.Runner, card: Card):
-        # This handles playing a card from the player's hand
-
-        if player == self.corp:
-            if card.type == "operation":
-                self.effect_manager.handle_on_play(card, player)
-                self.effect_manager.trigger_global_effects(
-                    "operation_played", player=player, card=card
-                )
-            elif (
-                card.type == "ice"
-                or card.type == "asset"
-                or card.type == "upgrade"
-                or card.type == "agenda"
-            ):
-                player.install_card(self, card)
-        player.handle_card_discard(card)
-
     def run(self, runner, server):
-        print(f"{runner.name} initiates a run on {server}")
-
-        # 1. Initiation Phase
-        self.current_phase = GamePhase.RUN_INITIATION
-        runner.gain_credits(self.corp.bad_publicity)
-
-        ice_list = self.get_ice_protecting_server(server)
-
-        # 2. Confrontation Phase
-        for ice in ice_list:
-            self.current_phase = GamePhase.RUN_APPROACH_ICE
-            if runner.decide_to_continue():
-                self.current_phase = GamePhase.RUN_ENCOUNTER_ICE
-                runner.encounter_ice(ice)
-            else:
-                print(f"{runner.name} jacks out.")
-                return
-
-        # 3. Access Phase
-        self.current_phase = GamePhase.RUN_SUCCESS
-        accessed_cards = self.access_server(server)
-        for card in accessed_cards:
-            self.handle_accessed_card(card)
-
-        print(f"Run on {server} successful.")
+        self.run_manager.initiate_run(runner, server)
 
     def get_ice_protecting_server(self, server):
         if server == "HQ":
@@ -196,13 +156,17 @@ class Game:
 
     def access_server(self, server):
         if server == "HQ":
-            return [random.choice(self.corp.hand)]
+            accessed_cards = self.access_hq()
         elif server == "R&D":
-            return [self.corp.deck.cards[-1]]
+            accessed_cards = self.access_rd()
         elif server == "Archives":
-            return self.corp.archives.cards
+            accessed_cards = self.access_archives()
         else:
-            return self.corp.remote_servers[int(server.split()[-1]) - 1].cards
+            server_index = int(server.split()[-1]) - 1
+            accessed_cards = self.access_remote_server(server_index)
+
+        for card in accessed_cards:
+            self.handle_accessed_card(card)
 
     def handle_accessed_card(self, card):
         print(f"Accessed: {card.name}")
@@ -239,23 +203,6 @@ class Game:
             elif action == "end_run":
                 return True  # End the run
         return False  # Continue the run
-
-    def runner_jacks_out(self) -> bool:
-        return input("Do you want to jack out? (y/n): ").lower() == "y"
-
-    def run_ends_due_to_ice(self) -> bool:
-        # For now, let's assume the run ends if the Runner can't break all subroutines
-        return not self.runner_breaks_all_subroutines()
-
-    def runner_breaks_all_subroutines(self) -> bool:
-        # Simplified ice breaking mechanic
-        print(f"Encountered ICE: {self.current_ice.name}")
-        print(f"Strength: {self.current_ice.strength}")
-        print("Subroutines:")
-        for subroutine in self.current_ice.subroutines:
-            print(f"- {subroutine}")
-
-        return input("Can you break all subroutines? (y/n): ").lower() == "y"
 
     def purge_all_virus_counters(self):
         # Remove virus counters from all installed cards
@@ -313,18 +260,6 @@ class Game:
                 unrezzed_cards.append(server.installed_card)
         return unrezzed_cards
 
-    def access_hq(self):
-        return [random.choice(self.corp.hq.cards)]
-
-    def access_rd(self):
-        return self.corp.rd.cards[-1:]
-
-    def access_archives(self):
-        return self.corp.archives.cards
-
-    def access_remote_server(self, server_index):
-        return self.corp.remote_servers[server_index].cards
-
     def calculate_score(self, score_area):
         if not score_area:
             return 0
@@ -361,7 +296,7 @@ class Game:
         self.runner_score = sum(agenda.points for agenda in self.runner.score_area)
         self.check_win_condition()
 
-    def discard_down_to_max_hand_size(self, player: Player):
+    def discard_down_to_max_hand_size(self, player: Corp | Runner):
         while len(player.hand) > player.get_max_hand_size():
             max_hand_size = player.get_max_hand_size()
             user_selection = self.display_hand(
@@ -385,8 +320,8 @@ class Game:
             return True
         return False
 
-    def play_game(self):
-        self.setup_game()
+    def play_game(self, debug=False):
+        self.setup_game(debug)
         while not self.check_win_condition():
             self.turn_number += 1
             print(f"\n--- Turn {self.turn_number} ---")
@@ -496,3 +431,198 @@ class Game:
         # os.system("cls" if os.name == "nt" else "clear")
         print("\n\n\n")
         pass
+
+    def user_input(self, prompt: str = "", accept_responses: List[str] = []) -> str:
+        print(prompt)
+        while True:
+            response = readchar.readkey().lower()
+            if accept_responses:
+                if response in accept_responses:
+                    return response
+                else:
+                    print("Invalid response. Please try again.")
+            else:
+                return response
+
+    def debug_add_card_to_hand(self, player: Corp | Runner):
+        search_term = ""
+        filtered_cards = player.deck.cards
+        selected_index = 0
+
+        while True:
+            self.clear_screen()
+            print("=== Debug: Add Card to Hand ===")
+            print(f"Search: {search_term}")
+            print("\nMatching cards:")
+
+            for i, card in enumerate(filtered_cards):
+                prefix = ">" if i == selected_index else " "
+                print(f"{prefix} {i+1}. {card.name}")
+
+            print("\nControls:")
+            print(
+                "Type to search | ↑/↓ or number keys: Select | Enter: Confirm | Q: Quit"
+            )
+
+            key = readchar.readkey()
+
+            if key == readchar.key.UP and selected_index > 0:
+                selected_index -= 1
+            elif key == readchar.key.DOWN and selected_index < len(filtered_cards) - 1:
+                selected_index += 1
+            elif key.isdigit():
+                new_index = int(key) - 1
+                if 0 <= new_index < len(filtered_cards):
+                    selected_index = new_index
+            elif key == readchar.key.ENTER:
+                selected_card = filtered_cards[selected_index]
+                player.deck.cards.remove(selected_card)
+                player.hand.append(selected_card)
+                print(f"\nAdded {selected_card.name} to hand.")
+                input("Press Enter to continue...")
+                break
+            elif key == readchar.key.BACKSPACE:
+                if search_term:
+                    search_term = search_term[:-1]
+                    filtered_cards = [
+                        card
+                        for card in player.deck.cards
+                        if search_term.lower() in card.name.lower()
+                    ]
+                    selected_index = 0
+            elif key.lower() == "q":
+                break
+            else:
+                search_term += key
+                filtered_cards = [
+                    card
+                    for card in player.deck.cards
+                    if search_term.lower() in card.name.lower()
+                ]
+                selected_index = 0
+
+    def debug_menu(self, player):
+        options = ["Pick a card", "Modify resources", "Exit debug menu"]
+        selected_index = 0
+
+        while True:
+            self.clear_screen()
+            print("=== Debug Menu ===")
+            for i, option in enumerate(options):
+                prefix = ">" if i == selected_index else " "
+                print(f"{prefix} {i+1}. {option}")
+
+            print("\nControls:")
+            print("↑/↓ or number keys: Select | Enter: Confirm | Q: Quit")
+
+            key = readchar.readkey()
+
+            if key == readchar.key.UP and selected_index > 0:
+                selected_index -= 1
+            elif key == readchar.key.DOWN and selected_index < len(options) - 1:
+                selected_index += 1
+            elif key.isdigit():
+                new_index = int(key) - 1
+                if 0 <= new_index < len(options):
+                    selected_index = new_index
+            elif key == readchar.key.ENTER:
+                if selected_index == 0:
+                    self.debug_add_card_to_hand(player)
+                elif selected_index == 1:
+                    self.debug_modify_resources(player)
+                elif selected_index == 2:
+                    break
+            elif key.lower() == "q":
+                break
+
+    def debug_modify_resources(self, player):
+        options = [
+            "Modify clicks",
+            "Modify credits",
+            "Modify memory units (MU)",
+            "Modify bad publicity (Corp only)",
+            "Modify tags (Runner only)",
+            "Back to main debug menu",
+        ]
+        selected_index = 0
+
+        while True:
+            self.clear_screen()
+            print("=== Debug: Modify Resources ===")
+            for i, option in enumerate(options):
+                prefix = ">" if i == selected_index else " "
+                print(f"{prefix} {i+1}. {option}")
+
+            print("\nControls:")
+            print("↑/↓ or number keys: Select | Enter: Confirm | Q: Quit")
+
+            key = readchar.readkey()
+
+            if key == readchar.key.UP and selected_index > 0:
+                selected_index -= 1
+            elif key == readchar.key.DOWN and selected_index < len(options) - 1:
+                selected_index += 1
+            elif key.isdigit():
+                new_index = int(key) - 1
+                if 0 <= new_index < len(options):
+                    selected_index = new_index
+            elif key == readchar.key.ENTER:
+                if selected_index == 0:
+                    self.debug_modify_resource(player, "clicks")
+                elif selected_index == 1:
+                    self.debug_modify_resource(player, "credits")
+                elif selected_index == 2:
+                    self.debug_modify_resource(player, "memory_units")
+                elif selected_index == 3 and isinstance(player, Corp):
+                    self.debug_modify_resource(player, "bad_publicity")
+                elif selected_index == 4 and isinstance(player, Runner):
+                    self.debug_modify_resource(player, "tags")
+                elif selected_index == 5:
+                    break
+            elif key.lower() == "q":
+                break
+
+    def debug_modify_resource(self, player, resource):
+        current_value = getattr(player, resource, 0)
+        print(f"\nCurrent {resource}: {current_value}")
+        new_value = input(f"Enter new value for {resource}: ")
+        try:
+            new_value = int(new_value)
+            setattr(player, resource, new_value)
+            print(f"{resource.capitalize()} updated to {new_value}")
+        except ValueError:
+            print("Invalid input. Please enter a number.")
+        input("Press Enter to continue...")
+
+    def trash_card(self, card: Card, source=None):
+        if source is None:
+            source = self.corp.get_card_location(card)
+        logger.info(f"Trashing card: {card.name} from {source}")
+
+        # Step 1: Trigger any "about to trash" effects TODO: Implement pre-trash handling
+        # self.effect_manager.trigger_about_to_trash_effects(card, source)
+
+        # Step 2: Remove the card from its current location
+        if source == "HQ":
+            self.corp.hq.cards.remove(card)
+        elif source == "R&D":
+            self.corp.rd.cards.remove(card)
+        elif source == "Remote":
+            for server in self.corp.remote_servers:
+                if card in server.installed_card:
+                    server.installed_card = None
+                    break
+
+        # Step 3: Trigger on_trash effects
+        # self.effect_manager.trigger_on_trash_effects(card)
+
+        # Step 4: Move the card to Archives
+        self.corp.archives.handle_card_discard(card)
+
+        # Step 5: Deactivate persistent effects TODO: Implement gracefully removing persistent effects
+        # self.effect_manager.deactivate_card_effects(card)
+
+        # Step 6: Update game state
+        # self.update_game_state()
+
+        logger.info(f"Card {card.name} has been trashed and moved to Archives")
