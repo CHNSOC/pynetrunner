@@ -3,9 +3,7 @@ from termcolor import colored
 from .card_formatter import CardFormatter
 
 
-
 class Card:
-
     @staticmethod
     def parse_attribute(attributes: dict, key, default_value, data_type=str):
         value = attributes.get(key, default_value)
@@ -14,8 +12,11 @@ class Card:
         try:
             return data_type(value)
         except (ValueError, TypeError):
-            print(f"Warning: Invalid {key} value '{value}'. Using default: {default_value}")
+            print(
+                f"Warning: Invalid {key} value '{value}'. Using default: {default_value}"
+            )
             return default_value
+
     def __init__(self, card_data):
         attributes = card_data.get("attributes", {})
 
@@ -30,11 +31,15 @@ class Card:
         self.stripped_text = Card.parse_attribute(attributes, "stripped_text", "")
         self.is_unique = Card.parse_attribute(attributes, "is_unique", False, bool)
         self.subtypes = Card.parse_attribute(attributes, "card_subtype_ids", None, list)
-        self.influence_cost = Card.parse_attribute(attributes, "influence_cost", None, int)
+        self.influence_cost = Card.parse_attribute(
+            attributes, "influence_cost", None, int
+        )
         self.base_link = Card.parse_attribute(attributes, "base_link", None, int)
         self.deck_limit = Card.parse_attribute(attributes, "deck_limit", None, int)
         self.influence_limit = Card.parse_attribute(attributes, "influence_limit", "")
-        self.agenda_points = Card.parse_attribute(attributes, "agenda_points", None, int)
+        self.agenda_points = Card.parse_attribute(
+            attributes, "agenda_points", None, int
+        )
         self.trash_cost = Card.parse_attribute(attributes, "trash_cost", None, int)
         self.memory_cost = Card.parse_attribute(attributes, "memory_cost", None, int)
         self.date_release = Card.parse_attribute(attributes, "date_release", None)
@@ -51,6 +56,7 @@ class Card:
         self.location = None
 
         self.effects = {}
+        self.is_faceup = False
 
     def to_string(self):
         attributes = [
@@ -101,18 +107,25 @@ class Card:
         )
 
     def pretty_print(self):
-
         if self.subtypes:
             print(f"   Subtypes: {', '.join(self.subtypes)}")
         if self.type == "ice" and hasattr(self, "subroutines"):
             print("   Subroutines:")
             for subroutine in self.subroutines:
-                print(f"    {colored('⊡', 'white')} {CardFormatter.apply_formatting(subroutine)}")
+                print(
+                    f"    {colored('⊡', 'white')} {CardFormatter.apply_formatting(subroutine)}"
+                )
         elif self.text:
             print(f"   Effect: {CardFormatter.apply_formatting(self.text)}")
         if self.type in ["asset", "upgrade"] and hasattr(self, "trash_cost"):
             print(f"   Trash Cost: {colored(str(self.trash_cost), 'red')}")
         print()  # Add a blank line for readability in detailed view
+
+    def flip_faceup(self):
+        self.is_faceup = True
+
+    def flip_facedown(self):
+        self.is_faceup = False
 
     def play(self, player, game):
         if player.credits >= self.cost:
@@ -150,9 +163,11 @@ class Card:
             self.virus_counters -= 1
 
     def can_be_advanced(self):
-        return self.type in ["agenda", "asset"] and hasattr(
-            self, "advancement_requirement"
-        ) and self.advancement_requirement > 0
+        return (
+            self.type in ["agenda", "asset"]
+            and hasattr(self, "advancement_requirement")
+            and self.advancement_requirement > 0
+        )
 
     def can_be_scored(self):
         return (

@@ -218,3 +218,18 @@ class EffectManager:
                     player.shuffle_deck()
             else:
                 print(f"No copy of {card_name} found or not enough credits to install.")
+
+    def handle_on_trash_effects(self, card: Card):
+        for effect in card.effects.get("on_trash", []):
+            self.apply_effect(effect, card, self.game.current_player)
+
+        # Check for global "on trash" effects
+        # for active_card in self.game.get_all_active_cards():
+        #     for effect in active_card.effects.get("global_on_trash", []):
+        #         if effect["condition"](card):
+        #             self.apply_effect(effect, active_card, self.game.current_player)
+
+    def deactivate_card_effects(self, card: Card):
+        # Remove any ongoing effects from this card
+        self.game.corp.remove_modifiers(card)
+        self.game.runner.remove_modifiers(card)

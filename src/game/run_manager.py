@@ -189,7 +189,7 @@ class RunManager:
                 == "y"
             ):
                 self.game.runner.credits -= card.trash_cost
-                self.game.corp.trash(card)
+                self.game.trash_card(card)
 
     def conclude_run(self):
         logger.info("Run concluded")

@@ -322,18 +322,12 @@ class Corp(Player):
 
         return True
 
-    def get_advanceable_cards(self):
+    def get_advanceable_cards(self) -> List[Card]:
         advanceable_cards = []
         for server in self.remote_servers:
             if server.installed_card and server.installed_card.can_be_advanced():
                 advanceable_cards.append(server.installed_card)
         return advanceable_cards
-
-    def score_agenda(self, agenda: Card, game):
-        self.score_area.append(agenda)
-        agenda.location.installed_card = None
-        print(f"Scored agenda: {agenda.name} worth {agenda.agenda_points} points.")
-        game.check_win_condition()
 
     def rez_card(self, card: Card, game: Game):
         # Check if the card is a valid type for rezzing
@@ -508,6 +502,16 @@ class Corp(Player):
             elif key.lower() == "q":
                 break
 
+    def get_card_location(self, card):
+        if card in self.hq.cards:
+            return "HQ"
+        elif card in self.rd.cards:
+            return "R&D"
+        elif card in self.archives.cards:
+            return "Archives"
+        else:
+            return "Remote"
+
 
 class Runner(Player):
     def __init__(self, deck: Deck, identity: Card):
@@ -598,6 +602,7 @@ class Runner(Player):
                 self.examine_servers(game)
             elif key == "r" and self.clicks > 0:
                 self.initiate_run(game)
+                self.clicks -= 1
             elif key == "u" and self.clicks > 0:
                 if self.use_installed_card_ability(game):
                     self.clicks -= 1

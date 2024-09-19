@@ -98,3 +98,8 @@ class Player:
 
     def can_pay(self, cost):
         return self.credits >= cost
+
+    def score_agenda(self, agenda: Card):
+        # TODO: Move card from server to score area, triggering any on-score effects
+        self.score_area.append(agenda)
+        print(f"Scored agenda: {agenda.name} worth {agenda.agenda_points} points.")

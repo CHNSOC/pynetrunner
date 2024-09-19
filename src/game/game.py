@@ -593,3 +593,36 @@ class Game:
         except ValueError:
             print("Invalid input. Please enter a number.")
         input("Press Enter to continue...")
+
+    def trash_card(self, card: Card, source=None):
+        if source is None:
+            source = self.corp.get_card_location(card)
+        logger.info(f"Trashing card: {card.name} from {source}")
+
+        # Step 1: Trigger any "about to trash" effects TODO: Implement pre-trash handling
+        # self.effect_manager.trigger_about_to_trash_effects(card, source)
+
+        # Step 2: Remove the card from its current location
+        if source == "HQ":
+            self.corp.hq.cards.remove(card)
+        elif source == "R&D":
+            self.corp.rd.cards.remove(card)
+        elif source == "Remote":
+            for server in self.corp.remote_servers:
+                if card in server.installed_card:
+                    server.installed_card = None
+                    break
+
+        # Step 3: Trigger on_trash effects
+        # self.effect_manager.trigger_on_trash_effects(card)
+
+        # Step 4: Move the card to Archives
+        self.corp.archives.handle_card_discard(card)
+
+        # Step 5: Deactivate persistent effects TODO: Implement gracefully removing persistent effects
+        # self.effect_manager.deactivate_card_effects(card)
+
+        # Step 6: Update game state
+        # self.update_game_state()
+
+        logger.info(f"Card {card.name} has been trashed and moved to Archives")
