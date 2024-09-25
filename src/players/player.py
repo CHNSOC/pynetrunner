@@ -732,7 +732,6 @@ class Runner(Player):
 
     def play_card(self, game: Game, card: Card):
         if card.type == "event":
-            print(f"Playing event: {card.name}")
             if self.play_event(game, card):
                 self.handle_card_discard(card)
                 print(f"{card.name} has been played and moved to the Heap.")
@@ -752,7 +751,7 @@ class Runner(Player):
 
             self.clicks -= 1
 
-            print(f"{card.name} has been played and moved to Archives.")
+            print(f"{card.name} has been played.")
             return True
         else:
             print(f"Not enough credits to play {card.name}.")
