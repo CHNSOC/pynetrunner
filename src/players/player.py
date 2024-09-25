@@ -693,6 +693,7 @@ class Runner(Player):
 
         if not prepaid:
             self.credits -= card.cost
+            self.clicks -= 1
         self.rig[card.type.lower()].append(card)
         card.location = self.rig[card.type.lower()]
         if (

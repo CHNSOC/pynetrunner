@@ -170,7 +170,7 @@ class RunManager:
         return self.game.corp.archives.cards
 
     def access_remote_server(self, server_index):
-        return self.game.corp.remote_servers[server_index].cards
+        return self.game.corp.remote_servers[server_index].installed_card
 
     def handle_accessed_card(self, card: Card):
         logger.info(f"Accessed card: {card.name}")
